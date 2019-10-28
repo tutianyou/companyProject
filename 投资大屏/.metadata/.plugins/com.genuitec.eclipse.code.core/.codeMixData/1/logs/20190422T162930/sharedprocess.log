@@ -1,0 +1,70 @@
+[2019-04-22 16:29:37.255] [sharedprocess] [info] main {"machineId":"727461ea1ba47219eefd5ddcf511e6061d134b448b9f47a73339d1da9ec1c712"}
+[2019-04-22 16:29:37.270] [sharedprocess] [info] Scanned user extensions: 0
+[2019-04-22 16:29:37.301] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:29:37.610] [sharedprocess] [info] Scanned user extensions: 0
+[2019-04-22 16:29:37.627] [sharedprocess] [info] Scanned user extensions: 0
+[2019-04-22 16:29:37.629] [sharedprocess] [info] Scanned user extensions: 0
+[2019-04-22 16:29:37.661] [sharedprocess] [info] Scanned user extensions: 0
+[2019-04-22 16:29:37.703] [sharedprocess] [info] Scanned user extensions: 0
+[2019-04-22 16:29:37.757] [sharedprocess] [info] Scanned user extensions: 0
+[2019-04-22 16:29:37.840] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:29:37.844] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:29:37.848] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:29:37.852] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:29:37.857] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:29:38.596] [sharedprocess] [info] Scanned user extensions: 0
+[2019-04-22 16:29:38.596] [sharedprocess] [info] Installing the extension: codemix.vue
+[2019-04-22 16:29:38.624] [sharedprocess] [info] Extracted extension to C:\Users\涂天佑\.codemix\extensions\.codemix.vue-0.9.3: codemix.vue
+[2019-04-22 16:29:38.625] [sharedprocess] [info] Renamed to C:\Users\涂天佑\.codemix\extensions\codemix.vue-0.9.3
+[2019-04-22 16:29:38.626] [sharedprocess] [info] Installation completed. codemix.vue
+[2019-04-22 16:29:38.627] [sharedprocess] [info] Successfully installed the extension: codemix.vue
+[2019-04-22 16:29:38.861] [sharedprocess] [info] Scanned user extensions: 1
+[2019-04-22 16:29:38.918] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:29:38.985] [sharedprocess] [info] Scanned user extensions: 1
+[2019-04-22 16:29:41.021] [sharedprocess] [info] Scanned user extensions: 1
+[2019-04-22 16:29:41.021] [sharedprocess] [info] Installing the extension: christian-kohler.path-intellisense
+[2019-04-22 16:29:41.094] [sharedprocess] [info] Extracted extension to C:\Users\涂天佑\.codemix\extensions\.christian-kohler.path-intellisense-1.4.2: christian-kohler.path-intellisense
+[2019-04-22 16:29:41.095] [sharedprocess] [info] Renamed to C:\Users\涂天佑\.codemix\extensions\christian-kohler.path-intellisense-1.4.2
+[2019-04-22 16:29:41.096] [sharedprocess] [info] Installation completed. christian-kohler.path-intellisense
+[2019-04-22 16:29:41.096] [sharedprocess] [info] Successfully installed the extension: christian-kohler.path-intellisense
+[2019-04-22 16:29:41.106] [sharedprocess] [info] Scanned user extensions: 2
+[2019-04-22 16:29:41.123] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:29:41.142] [sharedprocess] [info] Scanned user extensions: 2
+[2019-04-22 16:29:41.579] [sharedprocess] [info] Scanned user extensions: 2
+[2019-04-22 16:29:41.579] [sharedprocess] [info] Installing the extension: codemix.node
+[2019-04-22 16:29:41.586] [sharedprocess] [info] Extracted extension to C:\Users\涂天佑\.codemix\extensions\.codemix.node-0.9.3: codemix.node
+[2019-04-22 16:29:41.587] [sharedprocess] [info] Renamed to C:\Users\涂天佑\.codemix\extensions\codemix.node-0.9.3
+[2019-04-22 16:29:41.587] [sharedprocess] [info] Installation completed. codemix.node
+[2019-04-22 16:29:41.587] [sharedprocess] [info] Successfully installed the extension: codemix.node
+[2019-04-22 16:29:41.592] [sharedprocess] [info] Scanned user extensions: 3
+[2019-04-22 16:29:41.605] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:29:41.621] [sharedprocess] [info] Scanned user extensions: 3
+[2019-04-22 16:30:17.267] [sharedprocess] [info] Starting to clean up unused language packs.
+[2019-04-22 16:30:28.868] [sharedprocess] [info] Scanned user extensions: 3
+[2019-04-22 16:30:28.868] [sharedprocess] [info] Installing the extension: codemix.web
+[2019-04-22 16:30:28.874] [sharedprocess] [info] Extracted extension to C:\Users\涂天佑\.codemix\extensions\.codemix.web-0.9.4: codemix.web
+[2019-04-22 16:30:28.875] [sharedprocess] [info] Renamed to C:\Users\涂天佑\.codemix\extensions\codemix.web-0.9.4
+[2019-04-22 16:30:28.876] [sharedprocess] [info] Installation completed. codemix.web
+[2019-04-22 16:30:28.876] [sharedprocess] [info] Successfully installed the extension: codemix.web
+[2019-04-22 16:30:28.883] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:30:28.901] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:30:28.923] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:30:33.350] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:30:33.352] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:30:33.352] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:30:33.398] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:30:33.401] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:30:33.404] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:30:33.532] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:30:33.547] [sharedprocess] [info] Scanned system extensions: 73
+[2019-04-22 16:30:35.540] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:35:36.206] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:40:36.212] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:45:36.218] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:50:36.222] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 16:55:36.229] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 17:00:36.236] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 17:05:36.241] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 17:10:36.247] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 17:15:36.252] [sharedprocess] [info] Scanned user extensions: 4
+[2019-04-22 17:20:36.256] [sharedprocess] [info] Scanned user extensions: 4

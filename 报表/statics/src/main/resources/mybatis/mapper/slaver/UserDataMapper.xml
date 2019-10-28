@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.xusage.statics.dao.slaver.UserDao">
+  
+  		<select id="searchUser" resultType="com.xusage.statics.pojo.User">
+			SELECT
+				usercenter.userId,
+				usercenter.phoneNum,
+				usercenter.userName,
+				usercenter.lastGivePoints as code
+			FROM
+				usercenter.usercenter 
+			WHERE
+				1= 1  
+			 AND 
+			 	usercenter.platform = 2 
+			<if test="phoneNum != null">
+				AND phoneNum = #{phoneNum}
+			</if>
+			<if test="password != null">
+				AND password = #{password}
+			</if>
+		</select>
+  
+</mapper>

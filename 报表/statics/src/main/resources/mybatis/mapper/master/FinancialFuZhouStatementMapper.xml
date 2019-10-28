@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xusage.statics.dao.master.FinancialFuZhouStatementDao">
+
+	<!-- 福州 -->
+	<select id="searchFuZhouProvinceFinanical" resultType="com.xusage.statics.pojo.CommentPojo">
+	SELECT
+		cargo.cargo_no as cargoNo,
+		cargo.consignor_name as consignorName,
+		LAST_DAY(date_format(cargo.delivery_date, '%Y-%m-%d')) as certificatDate,
+		cargo.total_price * 0.98 as optionTickeAmount,
+		sum(cargo.total_price) as invoiceAmount,
+		sum(cargo.total_price) * 0.98 as entryTicketAmount,
+		cargo.provinces as province
+	FROM
+		hyll_wuliu.cargo
+	WHERE
+		1=1
+	<if test="consignorName != null and consignorName != ''">
+	AND 
+		cargo.consignor_name LIKE CONCAT ('%',#{consignorName},'%' )
+	</if>
+	AND	
+		cargo.provinces like concat ('%','福州','%')
+    GROUP BY  
+ 		cargo.consignor_name, Month(cargo.delivery_date)
+    ORDER BY
+    	cargo.delivery_date
+    <if test="length != null">
+									LIMIT 
+							<if test="offset != null">#{offset}, </if>
+											#{length}
+							</if>
+	</select>
+	
+	
+	<select id="count" resultType="Integer">
+	 SELECT count(1) from  (
+		SELECT
+			cargo.cargo_no as cargoNo,
+			cargo.consignor_name as consignorName,
+			LAST_DAY(date_format(cargo.delivery_date, '%Y-%m-%d')) as certificatDate,
+			cargo.total_price * 0.98 as optionTickeAmount,
+			sum(cargo.total_price) as invoiceAmount,
+			sum(cargo.total_price) * 0.98 as entryTicketAmount,
+			cargo.provinces as province
+		FROM
+			hyll_wuliu.cargo
+		WHERE
+			1=1
+		<if test="consignorName != null and consignorName != ''">
+		AND 
+			cargo.consignor_name LIKE CONCAT ('%',#{consignorName},'%' )
+		</if>
+		AND	
+			cargo.provinces like concat ('%','福州','%')
+	    GROUP BY  
+	 		cargo.consignor_name, Month(cargo.delivery_date)
+	    ORDER BY
+	    	cargo.delivery_date
+ 		) t1
+	</select>
+	
+
+</mapper>

@@ -1,0 +1,69 @@
+package com.dataviz.xusage.dao;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import com.dataviz.xusage.entity.Common;
+import com.dataviz.xusage.entity.LineDistribute;
+
+@Mapper
+public interface TransportCapacityDao {
+
+	//本月调用运力
+	public Integer thisMonthCallTransportCapacity();
+
+	//累计调用运力
+	public Integer accumulativeCallTransportCapacity();
+	
+	//本月新增运力
+	public Integer thisMonthAddTransportCapacity();
+	
+	//累计平台运力
+	public Integer accumulativeTransportCapacity();
+	
+	//近12月运力增长
+	public Integer findTransportCapacityIncreaseByMonth(@Param(value="month") String month);
+	
+	//近12月运力调用(调度车辆)
+	public Integer findTransportCapacityDispatchCarByMonth(@Param(value="month") String month);
+	
+	//近12月运力调用(运输车次)
+	public Integer findTransportCapacityDispatchCarsNumByMonth(@Param(value="month") String month);
+	
+	//近12月运力调用(运输车次)
+	public Integer findTransportCapacityDispatchCarsTimerByMonth(@Param(value="month") String month);
+	
+	//调用车辆
+	public List<Common> findCallVehicle();
+	
+	//运输车次
+	public List<Common> findTransportationNumber();
+	
+	//运输时长
+	public List<Common> findTransportationDuration();
+	
+	//车辆类型占比
+	public List<Common> vehicleTypeRatio();
+
+	//车长类型占比
+	public List<Common> vehicleLengthTypeRatio();
+	
+	//车辆区域热点分布
+	//查找车牌类型及对应的数量
+	public List<Common> findPlateAndCount();
+	
+	//根据返回的车牌号前两位查询对应区域
+	public String findAreaCodeByPlate(@Param(value = "plate") String plate);
+	
+	//该省份车辆数
+	public Integer thisAreaVehicleNumber(@Param(value = "province_area") String province_area,@Param(value = "city_area") String city_area);
+	
+	//该省份的线路数量
+	public Integer thisProvinceLineNumber(@Param(value = "province_area") String province_area,@Param(value = "city_area") String city_area);
+	
+	//线路分布
+	//获取起始地和卸货地的code 
+	public List<LineDistribute> getStratAndEndArea(@Param(value = "province_area") String province_area,@Param(value = "city_area") String city_area);
+}

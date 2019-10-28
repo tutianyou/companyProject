@@ -1,0 +1,426 @@
+package xusage.carrier.launch.catering.mission;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import net.sf.json.JSONArray;
+import xusage.carrier.launch.catering.util.CalculationUtil;
+import xusage.carrier.launch.catering.util.NumberToCN;
+import xusage.xmission.surface.ProcunitException;
+/**
+ * 下载图片
+ * @author 
+ *
+ */
+public class DownloadImage implements xusage.carrier.launch.catering.surface.DownloadImage {
+
+	private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(DownloadImage.class);
+
+	@Override
+	public Result execute(Parameter parameter) throws ProcunitException {
+		Result result = new Result();
+		HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+				.getResponse();
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+				.getRequest();
+		response.setHeader("Access-Control-Allow-Origin", "*"); // 解决跨域访问报错
+		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
+		response.setHeader("Access-Control-Max-Age", "3600"); // 设置过期时间
+		response.setHeader("Access-Control-Allow-Headers",
+				"Origin, X-Requested-With, Content-Type, Accept, client_id, uuid, Authorization");
+		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // 支持HTTP 1.1.
+		response.setHeader("Pragma", "no-cache"); // 支持HTTP 1.0. response.setHeader("Expires", "0");
+		// 执行方法返回值
+		LOGGER.debug("parameter:" + parameter.toString());
+		response.setCharacterEncoding("UTF-8");
+		FileInputStream inputStream = null;
+		try {
+			request.setCharacterEncoding("UTF-8");
+			String path = request.getSession(true).getServletContext().getRealPath("/");
+			DecimalFormat df = new DecimalFormat("#.00");
+			String fileName= path+"//image//invoice.png";
+			inputStream = new FileInputStream(new File(fileName));
+			  BufferedImage bimg = null;
+		        try {
+		        	bimg = ImageIO.read(new FileInputStream(fileName));
+		        } catch (FileNotFoundException e) {
+		            // TODO Auto-generated catch block
+		            e.printStackTrace();
+		        } catch (IOException e) {
+		            // TODO Auto-generated catch block
+		            e.printStackTrace();
+		        }
+		         //得到Graphics2D 对象
+		         Graphics2D g2d=(Graphics2D)bimg.getGraphics();
+		         //设置颜色和画笔粗细
+		         g2d.setColor(Color.blue);
+		         g2d.setStroke(new BasicStroke(5));
+		         g2d.setFont(new Font("Serif", Font.PLAIN, 12));
+		         SimpleDateFormat sdft=new SimpleDateFormat("yyyy年");
+		         SimpleDateFormat sdf1=new SimpleDateFormat("MM月");
+		         SimpleDateFormat sdf2=new SimpleDateFormat("dd日");
+		         g2d.drawString(sdft.format(new Date()), 854, 117);//备注
+		         g2d.drawString(sdf1.format(new Date()), 899, 117);//备注
+		         g2d.drawString(sdf2.format(new Date()), 923, 117);//备注
+		         
+                 if(parameter.getName()!=null) {
+                	 g2d.drawString(parameter.getName(), 203, 151);//名称
+                 }
+		         
+                 if(parameter.getTax_code()!=null) {
+                	 g2d.drawString(parameter.getTax_code(), 205, 176);//纳税人识别号
+                 }
+			
+                 if(parameter.getInvoice_address()!=null) {
+                	 if(parameter.getInvoice_address().length()<24) {
+                		 g2d.drawString(parameter.getInvoice_address(), 205, 205);
+                	 }else {
+                		 String memo1 = parameter.getInvoice_address().substring(0, 23);
+                		 String memo2 = parameter.getInvoice_address().substring(23, parameter.getInvoice_address().length());
+                		 g2d.drawString(memo1, 205, 202);
+                		 g2d.drawString(memo2, 205, 216);
+                	 }
+                 }
+                 if(parameter.getConsignor_phone()!=null) {
+                	 g2d.drawString(parameter.getConsignor_phone(), 500, 205);//电话
+                 }
+                 if(parameter.getInvoice_bank()!=null) {
+                	 if(parameter.getInvoice_bank().length()<=22) {
+                		 g2d.drawString(parameter.getInvoice_bank(), 205, 229);//开户行
+                	 }else {
+                		 String memo1 = parameter.getInvoice_bank().substring(0, 22);//开户行
+                		 String memo2 = parameter.getInvoice_bank().substring(22, parameter.getInvoice_bank().length());
+                		 g2d.drawString(memo1, 205, 229);
+                		 g2d.drawString(memo2, 205, 240);
+                	 }
+       			 }
+                 if(parameter.getAccount()!=null) {
+                	 g2d.drawString(parameter.getAccount(), 481, 231);//账号
+                 }
+		         //密码区
+		         g2d.drawString(" ", 690, 170);
+		         //服务名称
+		         g2d.drawString("*运输服务*运费", 95, 300);
+		         
+		        // g2d.drawString(parameter., 190, 364);//合计
+				/*
+				 * if(parameter.getSpecifications()!=null) {
+				 * g2d.drawString(parameter.getSpecifications(), 300, 320);//规格型号 }
+				 * if(parameter.getUnit()!=null) { g2d.drawString(parameter.getUnit(), 390,
+				 * 320);//单位 } if(parameter.getNum()!=null) { g2d.drawString(parameter.getNum(),
+				 * 507, 320);//数量 }
+				 */
+			         
+         
+		         
+		         String TicketAmount = "";  //单价
+		         if(parameter.getInvoiced_amount()!=null && parameter.getTax_amount() != null) {
+		        	 TicketAmount = CalculationUtil.subtract(parameter.getInvoiced_amount(), parameter.getTax_amount());
+		        	 System.err.println(TicketAmount);
+		        	// g2d.drawString(TicketAmount, 723, 300);//单价
+                 }
+		         //金额
+		        
+		        
+		         if(parameter.getUnit()!=null){
+		        	 g2d.drawString(parameter.getUnit(),435,300); //单位 
+		         }
+		         //规格型号
+		         if(parameter.getSpecifications()!=null){
+		        	 if(parameter.getSpecifications().length()<=8) {
+		        		 g2d.drawString(parameter.getSpecifications(),310,300); 
+		        	 }else if(parameter.getSpecifications().length()>8 && parameter.getSpecifications().length()<=16){
+		        		 String memo1 = parameter.getSpecifications().substring(0, 8);
+		        		 String memo2 = parameter.getSpecifications().substring(8, parameter.getSpecifications().length());
+		        		 g2d.drawString(memo1,310,300);
+		        		 g2d.drawString(memo2,310,315); 
+		        	 }else if(parameter.getSpecifications().length()>16 && parameter.getSpecifications().length()<=24){
+		        		 String memo1 = parameter.getSpecifications().substring(0, 8);
+		        		 String memo2 = parameter.getSpecifications().substring(8, 16);
+		        		 String memo3 = parameter.getSpecifications().substring(16, parameter.getSpecifications().length());
+		        		 g2d.drawString(memo1,310,300);
+		        		 g2d.drawString(memo2,310,315); 
+		        		 g2d.drawString(memo3,310,330); 
+		        	 }else if(parameter.getSpecifications().length()>24 && parameter.getSpecifications().length()<=32){
+		        		 String memo1 = parameter.getSpecifications().substring(0, 8);
+		        		 String memo2 = parameter.getSpecifications().substring(8, 16);
+		        		 String memo3 = parameter.getSpecifications().substring(16, 24);
+		        		 String memo4 = parameter.getSpecifications().substring(24, parameter.getSpecifications().length());
+		        		 g2d.drawString(memo1,310,300);
+		        		 g2d.drawString(memo2,310,315); 
+		        		 g2d.drawString(memo3,310,330); 
+		        		 g2d.drawString(memo4,310,345); 
+		        	 }else if(parameter.getSpecifications().length()>32 && parameter.getSpecifications().length()<=40){
+		        		 String memo1 = parameter.getSpecifications().substring(0, 8);
+		        		 String memo2 = parameter.getSpecifications().substring(8, 16);
+		        		 String memo3 = parameter.getSpecifications().substring(16, 24);
+		        		 String memo4 = parameter.getSpecifications().substring(24, 32);
+		        		 String memo5 = parameter.getSpecifications().substring(32, parameter.getSpecifications().length());
+		        		 g2d.drawString(memo1,310,300);
+		        		 g2d.drawString(memo2,310,315); 
+		        		 g2d.drawString(memo3,310,330); 
+		        		 g2d.drawString(memo4,310,345); 
+		        		 g2d.drawString(memo5,310,360); 
+		        	 }else if(parameter.getSpecifications().length()>40 && parameter.getSpecifications().length()<=48){
+		        		 String memo1 = parameter.getSpecifications().substring(0, 8);
+		        		 String memo2 = parameter.getSpecifications().substring(8, 16);
+		        		 String memo3 = parameter.getSpecifications().substring(16, 24);
+		        		 String memo4 = parameter.getSpecifications().substring(24, 32);
+		        		 String memo5 = parameter.getSpecifications().substring(32, 40);
+		        		 String memo6 = parameter.getSpecifications().substring(40, parameter.getSpecifications().length());
+		        		 g2d.drawString(memo1,310,300);
+		        		 g2d.drawString(memo2,310,315); 
+		        		 g2d.drawString(memo3,310,330); 
+		        		 g2d.drawString(memo4,310,345); 
+		        		 g2d.drawString(memo5,310,360);
+		        		 g2d.drawString(memo6,310,375);
+		        	 }else if(parameter.getSpecifications().length()>48 && parameter.getSpecifications().length()<=56){
+		        		 String memo1 = parameter.getSpecifications().substring(0, 8);
+		        		 String memo2 = parameter.getSpecifications().substring(8, 16);
+		        		 String memo3 = parameter.getSpecifications().substring(16, 24);
+		        		 String memo4 = parameter.getSpecifications().substring(24, 32);
+		        		 String memo5 = parameter.getSpecifications().substring(32, 40);
+		        		 String memo6 = parameter.getSpecifications().substring(40, 48);
+		        		 String memo7 = parameter.getSpecifications().substring(48, parameter.getSpecifications().length());
+		        		 g2d.drawString(memo1,310,300);
+		        		 g2d.drawString(memo2,310,315); 
+		        		 g2d.drawString(memo3,310,330); 
+		        		 g2d.drawString(memo4,310,345); 
+		        		 g2d.drawString(memo5,310,360);
+		        		 g2d.drawString(memo6,310,375);
+		        		 g2d.drawString(memo6,310,390);
+		        	 }else {
+		        		 LOGGER.error("规格型号数据太长，超56个字");
+		        	 }
+		         }
+		         // g2d.drawString("12345678", 610, 320);//单价
+		         //此种情况只发生点击开票管理界面 查看-->预览 开票时出现
+		         if("1" .equals(parameter.getTicketOrOrder())){
+		        	String sumAmountPoint = CalculationUtil.add(String.valueOf(1), String.valueOf(0.09));
+		     		String sumAmount = String.valueOf(0);
+		     		String tax_amountNew;
+		     		try {
+		     			 sumAmount = CalculationUtil.divide(parameter.getInvoiced_amount(), sumAmountPoint,3);
+		     		} catch (IllegalAccessException e) {
+		     			e.printStackTrace();
+		     		}
+		     		tax_amountNew = CalculationUtil.multiply(sumAmount, String.valueOf(0.09), 2);//税
+		     		String smount = CalculationUtil.subtract(parameter.getInvoiced_amount(), tax_amountNew, 2);//金额
+		     		if(tax_amountNew!=null) {
+		     			TicketAmount = CalculationUtil.subtract(parameter.getInvoiced_amount(), tax_amountNew);//单价
+		     		}else {
+		     			TicketAmount = "";
+		     		}
+		     		g2d.drawString(tax_amountNew, 900, 300);//税额
+		     		g2d.drawString(smount, 720, 300);//金额
+		        	g2d.drawString(parameter.getInvoiced_amount(), 830, 480);//价税合计 小写数字
+		        	if(parameter.getConfirm_memo()!=null && !(parameter.getConfirm_memo().equals("null")) && !(parameter.getConfirm_memo().equals("undefined"))){
+		        		if(parameter.getConfirm_memo().length()<=30) {
+		        			 g2d.drawString(parameter.getConfirm_memo(), 672, 515);
+			        		}else if(parameter.getConfirm_memo().length()>30 && parameter.getConfirm_memo().length()<=60) {
+			        			String memo1 = parameter.getConfirm_memo().substring(0, 30);
+			        			String memo2 = parameter.getConfirm_memo().substring(30, parameter.getConfirm_memo().length());
+			        			g2d.drawString(memo1, 630, 515);
+			        			g2d.drawString(memo2, 630, 530);
+			        		}else if(parameter.getConfirm_memo().length()>60 && parameter.getConfirm_memo().length()<=90) {
+			        			String memo1 = parameter.getConfirm_memo().substring(0, 30);
+			        			String memo2 = parameter.getConfirm_memo().substring(30, 60);
+			        			String memo3 = parameter.getConfirm_memo().substring(60, parameter.getConfirm_memo().length());
+			        			g2d.drawString(memo1, 630, 515);
+			        			g2d.drawString(memo2, 630, 530);
+			        			g2d.drawString(memo3, 630, 545);
+			        		}
+			        		else if(parameter.getConfirm_memo().length()>90 && parameter.getConfirm_memo().length()<=120) {
+			        			String memo1 = parameter.getConfirm_memo().substring(0, 30);
+			        			String memo2 = parameter.getConfirm_memo().substring(30, 60);
+			        			String memo3 = parameter.getConfirm_memo().substring(60, 90);
+			        			String memo4 = parameter.getConfirm_memo().substring(90, parameter.getConfirm_memo().length());
+			        			g2d.drawString(memo1, 630, 515);
+			        			g2d.drawString(memo2, 630, 530);
+			        			g2d.drawString(memo3, 630, 545);
+			        			g2d.drawString(memo4, 630, 560);
+			        		}else if(parameter.getConfirm_memo().length()>120 && parameter.getConfirm_memo().length()<=150) {
+			        			String memo1 = parameter.getConfirm_memo().substring(0, 30);
+			        			String memo2 = parameter.getConfirm_memo().substring(30, 60);
+			        			String memo3 = parameter.getConfirm_memo().substring(60, 90);
+			        			String memo4 = parameter.getConfirm_memo().substring(90, 120);
+			        			String memo5 = parameter.getConfirm_memo().substring(120,parameter.getConfirm_memo().length());
+			        			g2d.drawString(memo1, 630, 515);
+			        			g2d.drawString(memo2, 630, 530);
+			        			g2d.drawString(memo3, 630, 545);
+			        			g2d.drawString(memo4, 630, 560);
+			        			g2d.drawString(memo5, 630, 575);
+			        		}else {
+			        			LOGGER.error("备注太长");
+			        		}
+		        	}
+		         }else{
+		        	 if((StringUtils.isNotBlank(parameter.getInvoiced_amount())) && (StringUtils.isNotBlank(parameter.getTax_point()))){
+				        	String sumAmountPoint = CalculationUtil.add(String.valueOf(1), String.valueOf(0.09));
+				     		String sumAmount = String.valueOf(0);
+				     		String tax_amountNew;
+				     		try {
+				     			 sumAmount = CalculationUtil.divide(parameter.getInvoiced_amount(), sumAmountPoint,3);
+				     		} catch (IllegalAccessException e) {
+				     			e.printStackTrace();
+				     		}
+				     		tax_amountNew = CalculationUtil.multiply(sumAmount, String.valueOf(0.09), 2);//税
+				     		String smount = CalculationUtil.subtract(parameter.getInvoiced_amount(), tax_amountNew, 2);
+				     		g2d.drawString(smount, 720, 300);//金额
+				        	}
+		         } 
+		         
+		         //数量
+		         if(StringUtils.isNotBlank(parameter.getNum()) && StringUtils.isNotBlank(TicketAmount) && !parameter.getNum().equals(0) && parameter.getNum() != null && !(parameter.getNum().equals("null"))) {
+		        	 g2d.drawString(parameter.getNum(), 485, 300);
+		        	 // 单价
+		        	 System.err.println(TicketAmount);
+		        	 System.err.println(parameter.getNum());
+		        	 String singlePrice = CalculationUtil.divide(TicketAmount, parameter.getNum(),2);
+		        	 g2d.drawString(singlePrice, 605, 300);
+		         }
+		         if(parameter.getTax_point()!=null) {
+		        	 BigDecimal taxpoint1= new BigDecimal(parameter.getTax_point());
+		        	 BigDecimal taxpoint2= new BigDecimal(100);
+		        	 g2d.drawString(taxpoint1.multiply(taxpoint2).stripTrailingZeros() +"%", 827, 300);//税率
+		        	 
+                 }
+		         if(parameter.getTax_amount() != null && parameter.getTax_amount() != ""){
+		        	 
+		        	 g2d.drawString(parameter.getTax_amount(), 905, 300);//税额
+		         }
+		         
+		         if(parameter.getInvoiced_amount()!=null) {
+		        	 BigDecimal amount= new BigDecimal(parameter.getInvoiced_amount());
+		        	 g2d.drawString(NumberToCN.number2CNMontrayUnit(amount), 341, 480);//大写
+		        	 g2d.drawString(parameter.getInvoiced_amount(), 830, 480);//价税合计 小写数字
+                 }
+		         
+		        	
+               
+		         
+		         
+		         g2d.drawString("福建好运联联信息科技有限公司", 220, 515);//名称
+		         g2d.drawString("91350100MA320BG49N", 220, 540);//纳税人识别号
+		         g2d.drawString("福建省福州市鼓楼区铜盘路29号左海综合楼三层88250212", 220, 563);//地址电话
+		         g2d.drawString("招商银行福州湖东支行591904598310101", 220, 585);//开户账号
+		         g2d.drawString("***", 150, 618);//收款人
+		         g2d.drawString("***", 400, 618);//复核
+		         g2d.drawString("***", 620, 618);//开票人
+		         if(parameter.getConfirm_memo()!=null && !(parameter.getConfirm_memo().equals("null")) && !(parameter.getConfirm_memo().equals("undefined"))) {
+		        	 System.err.println(parameter.getConfirm_memo());
+		        	 String[] memo = parameter.getConfirm_memo().split("\\*￥");
+		        	 if(memo.length > 1){
+						for(int i = 0;i < memo.length;i++){
+							int vex = 15;
+							if(i == 0){
+								g2d.drawString(memo[i], 672, 515);//备注
+							}else{
+								g2d.drawString(memo[i], 672, 515 + vex);//备注
+								vex+=30;
+							}
+						}	 
+		        	 }else{
+		        		 //	g2d.drawString(parameter.getConfirm_memo(), 672, 450);//备注
+		        		 if(parameter.getConfirm_memo().length()<=30) {
+		        			 g2d.drawString(parameter.getConfirm_memo(), 672, 515);
+			        		}else if(parameter.getConfirm_memo().length()>30 && parameter.getConfirm_memo().length()<=60) {
+			        			String memo1 = parameter.getConfirm_memo().substring(0, 30);
+			        			String memo2 = parameter.getConfirm_memo().substring(30, parameter.getConfirm_memo().length());
+			        			g2d.drawString(memo1, 630, 515);
+			        			g2d.drawString(memo2, 630, 530);
+			        		}else if(parameter.getConfirm_memo().length()>60 && parameter.getConfirm_memo().length()<=90) {
+			        			String memo1 = parameter.getConfirm_memo().substring(0, 30);
+			        			String memo2 = parameter.getConfirm_memo().substring(30, 60);
+			        			String memo3 = parameter.getConfirm_memo().substring(60, parameter.getConfirm_memo().length());
+			        			g2d.drawString(memo1, 630, 515);
+			        			g2d.drawString(memo2, 630, 530);
+			        			g2d.drawString(memo3, 630, 545);
+			        		}
+			        		else if(parameter.getConfirm_memo().length()>90 && parameter.getConfirm_memo().length()<=120) {
+			        			String memo1 = parameter.getConfirm_memo().substring(0, 30);
+			        			String memo2 = parameter.getConfirm_memo().substring(30, 60);
+			        			String memo3 = parameter.getConfirm_memo().substring(60, 90);
+			        			String memo4 = parameter.getConfirm_memo().substring(90, parameter.getConfirm_memo().length());
+			        			g2d.drawString(memo1, 630, 515);
+			        			g2d.drawString(memo2, 630, 530);
+			        			g2d.drawString(memo3, 630, 545);
+			        			g2d.drawString(memo4, 630, 560);
+			        		}else if(parameter.getConfirm_memo().length()>120 && parameter.getConfirm_memo().length()<=150) {
+			        			String memo1 = parameter.getConfirm_memo().substring(0, 30);
+			        			String memo2 = parameter.getConfirm_memo().substring(30, 60);
+			        			String memo3 = parameter.getConfirm_memo().substring(60, 90);
+			        			String memo4 = parameter.getConfirm_memo().substring(90, 120);
+			        			String memo5 = parameter.getConfirm_memo().substring(120,parameter.getConfirm_memo().length());
+			        			g2d.drawString(memo1, 630, 515);
+			        			g2d.drawString(memo2, 630, 530);
+			        			g2d.drawString(memo3, 630, 545);
+			        			g2d.drawString(memo4, 630, 560);
+			        			g2d.drawString(memo5, 630, 575);
+			        		}else {
+			        			LOGGER.error("备注太长");
+			        		}
+		        	 }
+                 }
+		         ByteArrayOutputStream os = new ByteArrayOutputStream();  
+		         ImageIO.write(bimg, "png", os);  
+		         InputStream is = new ByteArrayInputStream(os.toByteArray());  
+			
+		      
+			
+			
+			int length = is.available();
+			byte data[] = new byte[length];
+			response.setContentLength(length);
+			is.read(data);
+		
+			response.setHeader("Pragma", "no-cache");
+	        response.setHeader("Cache-Control", "no-cache");
+	        response.setDateHeader("Expires", 0);
+	        response.setContentType("image/png");
+	        OutputStream toClient  = response.getOutputStream();
+	        toClient.write(data);
+	        toClient.flush();
+		} catch (Exception e) {
+			LOGGER.error("下载图片出错");
+		}finally {
+			try {
+				inputStream.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		return result;
+	}
+	
+	
+	
+	
+
+}

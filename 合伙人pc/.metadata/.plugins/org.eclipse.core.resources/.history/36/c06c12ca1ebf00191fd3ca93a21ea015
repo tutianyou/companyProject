@@ -1,0 +1,126 @@
+package xusage.carrier.launch.catering.mission;
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+import xusage.carrier.launch.catering.po.TicketFormData;
+import xusage.carrier.launch.catering.po.TicketSumData;
+import xusage.xmission.surface.ProcunitException;
+/**
+ * 查询发票信息
+ * @author Administrator
+ *
+ */
+
+public class SearchInvoiceContent implements xusage.carrier.launch.catering.surface.SearchInvoiceContent {
+	
+	private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(SearchInvoiceContent.class);
+
+	@Override
+	public List<Result> execute(Parameter parameter) throws ProcunitException {
+		
+		LOGGER.debug("parameter:" + parameter.toString());
+		Result res = new Result();
+		List<Result> searchInvoiceContent = invoiceContent.searchInvoiceContent(parameter);
+		if("1".equals(parameter.getIsContentData())){
+			
+			if(searchInvoiceContent.size() ==0) {
+				xusage.carrier.launch.catering.surface.SearchTicket.Parameter ticketParameter  = new xusage.carrier.launch.catering.surface.SearchTicket.Parameter();
+				ticketParameter.setInvoice_id(parameter.getInvoice_id());
+				List<xusage.carrier.launch.catering.surface.SearchTicket.Result> searchTicket = ticket.searchTicket(ticketParameter);
+				if(searchTicket != null && searchTicket.size() > 0) {
+					xusage.carrier.launch.catering.surface.SearchInvoiceContent.Result searchInvoiceContentPara  = new xusage.carrier.launch.catering.surface.SearchInvoiceContent.Result();
+					searchInvoiceContentPara.setAccount(searchTicket.get(0).getAccount());
+					searchInvoiceContentPara.setInvoice_address(searchTicket.get(0).getInvoice_address());
+					searchInvoiceContentPara.setInvoice_amount(searchTicket.get(0).getInvoice_amount());
+					searchInvoiceContentPara.setInvoice_bank(searchTicket.get(0).getInvoice_bank());
+					searchInvoiceContentPara.setInvoice_company(searchTicket.get(0).getInvoice_company());
+					searchInvoiceContentPara.setInvoice_id(searchTicket.get(0).getInvoice_id().toString());
+					searchInvoiceContentPara.setInvoice_no(searchTicket.get(0).getInvoice_no());
+					searchInvoiceContentPara.setInvoice_phone(searchTicket.get(0).getInvoice_phone());
+					searchInvoiceContentPara.setInvoice_time(searchTicket.get(0).getInvoice_time());
+					searchInvoiceContentPara.setMemo(searchTicket.get(0).getMemo());
+					searchInvoiceContentPara.setNum(searchTicket.get(0).getNum());
+					searchInvoiceContentPara.setTax_amount(searchTicket.get(0).getTax_amount());
+					searchInvoiceContentPara.setTax_code(searchTicket.get(0).getTax_code());
+					searchInvoiceContent.add(searchInvoiceContentPara);
+				}
+			}
+			
+			return searchInvoiceContent;
+		}
+			
+		for(int i = 0;i < searchInvoiceContent.size();i++){
+			//ticSumdata tab统计数据,每一条数据里都有一个统计 数据
+			Result InResult = searchInvoiceContent.get(i);
+			TicketSumData ticSum = new TicketSumData();
+			ticSum.setTicSumNum(InResult.getNum());
+			ticSum.setTicMemo(InResult.getMemo());
+			ticSum.setTicSumAmount(InResult.getTax_amount());//税
+			ticSum.setTicSumInvoiceAmount(InResult.getInvoice_amount());
+			ticSum.setContentId(InResult.getId());
+			searchInvoiceContent.get(i).setTicketSumData(ticSum);
+			//加工详细表数据
+			List<TicketFormData> ticFormdataList = new ArrayList<TicketFormData>();
+			xusage.carrier.launch.catering.surface.SearchInvoiceContentDetail.Parameter contentDetailPara  = new xusage.carrier.launch.catering.surface.SearchInvoiceContentDetail.Parameter();
+			contentDetailPara.setContent_id(searchInvoiceContent.get(i).getId());
+			List<xusage.carrier.launch.catering.surface.SearchInvoiceContentDetail.Result> seContentDetailRes = invoiceContentDetail.searchInvoiceContentDetail(contentDetailPara);
+			for (int j = 0; j < seContentDetailRes.size(); j++) {
+				xusage.carrier.launch.catering.surface.SearchInvoiceContentDetail.Result resDetail = seContentDetailRes.get(j);
+				TicketFormData ticformdata = new TicketFormData();
+				//table中单挑row的数据
+				ticformdata.setAmount(resDetail.getTax_amount());
+				ticformdata.setInvoice_amount(resDetail.getInvoice_amount());
+				ticformdata.setNum(resDetail.getNum());
+				ticformdata.setService_name(resDetail.getService_name());
+				ticformdata.setSpecifications(resDetail.getSpecifications());
+				ticformdata.setUnit(resDetail.getUnit());
+				ticformdata.setDetailId(resDetail.getId());
+				ticFormdataList.add(ticformdata);
+			}
+			searchInvoiceContent.get(i).setTicketFormData(ticFormdataList);
+			
+		}
+		
+		
+		
+		
+		
+		
+		return searchInvoiceContent;
+	}
+	
+	
+	private xusage.mysql.mybatis.surface.InvoiceContent invoiceContent;
+	
+	private xusage.mysql.mybatis.surface.InvoiceContentDetail invoiceContentDetail;
+	
+	private xusage.mysql.mybatis.surface.Ticket ticket;
+	
+	
+
+	public xusage.mysql.mybatis.surface.Ticket getTicket() {
+		return ticket;
+	}
+	public void setTicket(xusage.mysql.mybatis.surface.Ticket ticket) {
+		this.ticket = ticket;
+	}
+	public xusage.mysql.mybatis.surface.InvoiceContentDetail getInvoiceContentDetail() {
+		return invoiceContentDetail;
+	}
+	public void setInvoiceContentDetail(xusage.mysql.mybatis.surface.InvoiceContentDetail invoiceContentDetail) {
+		this.invoiceContentDetail = invoiceContentDetail;
+	}
+	public xusage.mysql.mybatis.surface.InvoiceContent getInvoiceContent() {
+		return invoiceContent;
+	}
+	public void setInvoiceContent(xusage.mysql.mybatis.surface.InvoiceContent invoiceContent) {
+		this.invoiceContent = invoiceContent;
+	}
+
+
+	
+		
+	
+}

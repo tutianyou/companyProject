@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.xusage.statics.dao.slaver.InsertExpandDataDao"> 
+  
+  	<insert id="insertFuZhouExpandData">
+  	  INSERT INTO 
+  			hyll_wuliu.statics_expandata
+	  SET
+	  	 statics_expandata.name = #{name},
+	  
+		 statics_expandata.content = #{content}
+  	</insert>
+  
+  
+  
+  
+</mapper>

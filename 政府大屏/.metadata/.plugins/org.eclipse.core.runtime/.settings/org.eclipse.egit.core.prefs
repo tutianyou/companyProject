@@ -1,0 +1,4 @@
+GitRepositoriesView.GitDirectories=F\:\\datavizGovWorkSpace\\hyll-admin-gov\\.git;F\:\\datavizGovWorkSpace\\hyll-datav-gov\\.git;F\:\\datavizGovWorkSpace\\hyll-stastis-gov\\.git;
+GitRepositoriesView.GitDirectories.relative=hyll-admin-gov\\.git;hyll-datav-gov\\.git;hyll-stastis-gov\\.git;
+core_autoIgnoreDerivedResources=false
+eclipse.preferences.version=1

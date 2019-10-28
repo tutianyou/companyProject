@@ -1,0 +1,813 @@
+package com.dataviz.xusage.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.dataviz.xusage.entity.Address;
+import com.dataviz.xusage.entity.Common;
+import com.dataviz.xusage.entity.LineDistribute;
+import com.dataviz.xusage.service.AddressService;
+import com.dataviz.xusage.service.DatavizFieldService;
+import com.dataviz.xusage.service.DatavizService;
+import com.dataviz.xusage.service.TransportCapacityService;
+import com.dataviz.xusage.utils.GetLast12MonthsUtil;
+import com.dataviz.xusage.utils.GetUniquid;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@RestController
+@RequestMapping(value = "/transportCapacity")
+public class TransportCapacityController {
+
+	@Autowired
+	private TransportCapacityService transportCapacityService;
+
+	@Autowired
+	private DatavizService datavizService;
+	
+	@Autowired
+	private AddressService addressService;
+	
+	@Autowired
+	private DatavizFieldService datavizFieldService;
+	
+	//本月调用运力数
+	@RequestMapping(value = "/thisMonthCallTransportCapacity.json")
+	public String thisMonthCallTransportCapacity() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "thisMonthCallTransportCapacity";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		total = transportCapacityService.thisMonthCallTransportCapacity();
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "本月调用运力");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "本月调用运力";
+		
+		//查询统计该记录的数量,用于判断是否已统计过
+		Integer count = datavizService.countDatavizByField(field,":code",null,null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//累计调用运力数
+	@RequestMapping(value = "/accumulativeCallTransportCapacity.json")
+	public String accumulativeCallTransportCapacity() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "accumulativeCallTransportCapacity";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		total = transportCapacityService.accumulativeCallTransportCapacity();
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "累计调用运力");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "累计调用运力";
+		
+		//查询统计该记录的数量,用于判断是否已统计过
+		Integer count = datavizService.countDatavizByField(field,":code",null,null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//本月新增运力
+	@RequestMapping(value = "/thisMonthAddTransportCapacity.json")
+	public String thisMonthAddTransportCapacity() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "thisMonthAddTransportCapacity";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		total = transportCapacityService.thisMonthAddTransportCapacity();
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "本月新增运力");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "本月新增运力";
+		
+		//查询统计该记录的数量,用于判断是否已统计过
+		Integer count = datavizService.countDatavizByField(field,":code",null,null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//累计平台运力
+	@RequestMapping(value = "/accumulativeTransportCapacity.json")
+	public String accumulativeTransportCapacity() throws Exception {
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "accumulativeTransportCapacity";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		total = transportCapacityService.accumulativeTransportCapacity();
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "累计平台运力");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "累计平台运力";
+		
+		//查询统计该记录的数量,用于判断是否已统计过
+		Integer count = datavizService.countDatavizByField(field,":code",null,null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//近12月运力增长
+	@RequestMapping(value = "/findTransportCapacityIncreaseByMonth.json")
+	public String findTransportCapacityIncreaseByMonth() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "transportCapacityIncrease";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+//		List<Common> list = transportCapacityService.findTransportCapacityIncreaseByMonth();
+//		for (Iterator<Common> iterator = list.iterator(); iterator.hasNext();) {
+//			Common common = (Common) iterator.next();
+//			String uniquid_all = GetUniquid.build();
+//			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+//			filter_map_all.put("area", ":code");
+//			filter_map_all.put("month", common.getMonth());
+//			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+//			
+//			Map<String,Object> content_map_all = new HashMap<String,Object>();
+//			content_map_all.put("x", common.getMonth());
+//			content_map_all.put("y", common.getCount());
+//			content_map_all.put("s", 1);
+//			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+//			String comment_all = common.getMonth()+"月运力增长";
+//			
+//			//查询统计该记录的数量,用于判断是否已统计过
+//			Integer count = datavizService.countDatavizByField(field,":code",common.getMonth(),null,null);
+//			if(count > 0){
+//				datavizService.updateDataviz(field, ":code", common.getMonth(), null, content_all,null);
+//			}else{
+//				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+//			}
+//		}
+		List<String> months = GetLast12MonthsUtil.getLast12Months(12);
+		for (Iterator<String> iterator = months.iterator(); iterator.hasNext();) {
+			String month = (String) iterator.next();
+			Integer sum = transportCapacityService.findTransportCapacityIncreaseByMonth(month);
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("month", month);
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("x", month);
+			content_map_all.put("y", sum);
+			content_map_all.put("s", 1);
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = month+"月运力增长";
+			
+			//查询统计该记录的数量,用于判断是否已统计过
+			Integer count = datavizService.countDatavizByField(field,":code",month,null,null);
+			if(count > 0){
+				datavizService.updateDataviz(field, ":code", month, null, content_all,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//近12月运力调度
+	@RequestMapping(value = "/findTransportCapacityDispatchByMonth.json")
+	public String findTransportCapacityDispatchByMonth() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "transportCapacityDispatch";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//调用车辆
+//		List<String> monthsCar = GetLast12MonthsUtil.getLast12Months(12);
+//		for (Iterator<String> iterator = monthsCar.iterator(); iterator.hasNext();) {
+//			String month = (String) iterator.next();
+//			Integer sum = transportCapacityService.findTransportCapacityDispatchCarByMonth(month);
+//			
+//			String uniquid_all = GetUniquid.build();
+//			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+//			filter_map_all.put("area", ":code");
+//			filter_map_all.put("month", month);
+//			filter_map_all.put("type", "调用车辆");
+//			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+//			
+//			Map<String,Object> content_map_all = new HashMap<String,Object>();
+//			content_map_all.put("x", month);
+//			content_map_all.put("y", sum);
+//			content_map_all.put("s", "1");
+//			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+//			String comment_all = month+"月调用车辆";
+//			
+//			//查询统计该记录的数量,用于判断是否已统计过
+//			Integer count = datavizService.countDatavizByField(field,":code",month,"调用车辆",null);
+//			if(count > 0){
+//				datavizService.updateDataviz(field, ":code", month, "调用车辆", content_all,null);
+//			}else{
+//				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+//			}
+//			
+//		}
+			
+		
+		//调用车辆
+//		List<Common> list_call = transportCapacityService.findCallVehicle();
+//		for (Iterator<Common> iterator = list_call.iterator(); iterator.hasNext();) {
+//			Common common = (Common) iterator.next();
+//			String uniquid_all = GetUniquid.build();
+//			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+//			filter_map_all.put("area", ":code");
+//			filter_map_all.put("month", common.getMonth());
+//			filter_map_all.put("type", "调用车辆");
+//			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+//			
+//			Map<String,Object> content_map_all = new HashMap<String,Object>();
+//			content_map_all.put("x", common.getMonth());
+//			content_map_all.put("y", common.getCount());
+//			content_map_all.put("s", "1");
+//			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+//			String comment_all = common.getMonth()+"月调用车辆";
+//			
+//			//查询统计该记录的数量,用于判断是否已统计过
+//			Integer count = datavizService.countDatavizByField(field,":code",common.getMonth(),"调用车辆",null);
+//			if(count > 0){
+//				datavizService.updateDataviz(field, ":code", common.getMonth(), "调用车辆", content_all,null);
+//			}else{
+//				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+//			}
+//		}
+		
+		//运输车次
+		List<String> monthsCarsNum = GetLast12MonthsUtil.getLast12Months(12);
+		for (Iterator<String> iterator = monthsCarsNum.iterator(); iterator.hasNext();) {
+			String month = (String) iterator.next();
+			Integer sum = transportCapacityService.findTransportCapacityDispatchCarsNumByMonth(month);
+			
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("month", month);
+			filter_map_all.put("type", "运输车次");
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("x", month);
+			content_map_all.put("y", sum);
+			content_map_all.put("s", "2");
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = month+"月运输车次";
+			
+			//查询统计该记录的数量,用于判断是否已统计过
+			Integer count = datavizService.countDatavizByField(field,":code",month,"运输车次",null);
+			if(count > 0){
+				datavizService.updateDataviz(field, ":code", month, "运输车次", content_all,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+		}
+//		List<Common> list_number = transportCapacityService.findTransportationNumber();
+//		for (Iterator<Common> iterator = list_number.iterator(); iterator.hasNext();) {
+//			Common common = (Common) iterator.next();
+//			String uniquid_all = GetUniquid.build();
+//			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+//			filter_map_all.put("area", ":code");
+//			filter_map_all.put("month", common.getMonth());
+//			filter_map_all.put("type", "运输车次");
+//			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+//			
+//			Map<String,Object> content_map_all = new HashMap<String,Object>();
+//			content_map_all.put("x", common.getMonth());
+//			content_map_all.put("y", common.getCount());
+//			content_map_all.put("s", "2");
+//			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+//			String comment_all = common.getMonth()+"月运输车次";
+//			
+//			//查询统计该记录的数量,用于判断是否已统计过
+//			Integer count = datavizService.countDatavizByField(field,":code",common.getMonth(),"运输车次",null);
+//			if(count > 0){
+//				datavizService.updateDataviz(field, ":code", common.getMonth(), "2", content_all,null);
+//			}else{
+//				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+//			}
+//		}
+
+		//运输时长
+//		List<Common> list_duration = transportCapacityService.findTransportationDuration();
+//		for (Iterator<Common> iterator = list_duration.iterator(); iterator.hasNext();) {
+//			Common common = (Common) iterator.next();
+//			String uniquid_all = GetUniquid.build();
+//			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+//			filter_map_all.put("area", ":code");
+//			filter_map_all.put("month", common.getMonth());
+//			filter_map_all.put("type", "运输时长");
+//			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+//			
+//			Map<String,Object> content_map_all = new HashMap<String,Object>();
+//			content_map_all.put("x", common.getMonth());
+//			content_map_all.put("y", common.getCount());
+//			content_map_all.put("s", "3");
+//			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+//			String comment_all = common.getMonth()+"月运输时长";
+//			
+//			//查询统计该记录的数量,用于判断是否已统计过
+//			Integer count = datavizService.countDatavizByField(field,":code",common.getMonth(),"运输时长",null);
+//			if(count > 0){
+//				datavizService.updateDataviz(field, ":code", common.getMonth(), "3", content_all,null);
+//			}else{
+//				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+//			}
+//		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//车辆类型占比
+	@RequestMapping(value = "/vehicleTypeRatio.json") 
+	public String vehicleTypeRatio() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "vehicleTypeRatio";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		List<Common> total = transportCapacityService.vehicleTypeRatio();
+		for (Iterator<Common> iterator = total.iterator(); iterator.hasNext();) {
+			Common common = (Common) iterator.next();
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("type", common.getType());
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("type", common.getType());
+			content_map_all.put("value", common.getCount());
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = "车辆类型占比";
+			
+			//查询统计该记录的数量,用于判断是否已统计过
+			Integer count = datavizService.countDatavizByField(field,":code",null,common.getType(),null);
+			if(count > 0){
+				datavizService.updateDataviz(field, ":code", null, common.getType(), content_all,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//车长类型占比
+	@RequestMapping(value = "/vehicleLengthTypeRatio.json") 
+	public String vehicleLengthTypeRatio() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "vehicleLengthTypeRatio";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		List<Common> total = transportCapacityService.vehicleLengthTypeRatio();
+		for (Iterator<Common> iterator = total.iterator(); iterator.hasNext();) {
+			Common common = (Common) iterator.next();
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("type", common.getType());
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("x", common.getType());
+			content_map_all.put("y", common.getCount());
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = "车长类型占比";
+			
+			//查询统计该记录的数量,用于判断是否已统计过
+			Integer count = datavizService.countDatavizByField(field,":code",null,common.getType(),null);
+			if(count > 0){
+				datavizService.updateDataviz(field, ":code", null, common.getType(), content_all,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//车辆区域热点分布
+	@RequestMapping(value = "/vehicleAreaHotSpotDistribution.json") 
+	public String vehicleAreaHotSpotDistribution() throws Exception{
+	
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "vehicleAreaHotSpotDistribution";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//查找车牌类型及对应的数量
+		List<Common> list = transportCapacityService.findPlateAndCount();
+		for (Iterator<Common> iterator = list.iterator(); iterator.hasNext();) {
+			Common common = (Common) iterator.next();
+			//根据返回的车牌号前两位查询对应区域
+			String area_code = transportCapacityService.findAreaCodeByPlate(common.getType());
+			if(area_code != null){
+				String uniquid_all = GetUniquid.build();
+				Map<String,Object> filter_map_all = new HashMap<String,Object>();
+				filter_map_all.put("area", area_code);
+				String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+				Map<String,Object> content_map_all = new HashMap<String,Object>();
+				content_map_all.put("area_id", area_code);
+				content_map_all.put("value", common.getCount());
+				String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+				Address address = addressService.findAddressByCode(area_code);
+				String comment_all = "区域为"+address.getName()+"车辆区域热点分布";
+				//查询统计该记录的数量,用于判断是否已统计过
+				Integer count = datavizService.countDatavizByField(field,area_code,null,null,null);
+				if(count > 0){
+					datavizService.updateDataviz(field, area_code, null, null, content_all,null);
+				}else{
+					datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+				}
+			}else{
+				continue;
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//线路分布
+	@RequestMapping(value = "/lineDistribution.json")
+	public String lineDistribution() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "lineDistribution";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//省
+		List<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			Address address = addressService.findAddressByCode(provinceCode);
+			//获取起始地和卸货地的code
+			List<LineDistribute> list = transportCapacityService.getStratAndEndArea(provinceCode,null);
+			for (Iterator<LineDistribute> iterator2 = list.iterator(); iterator2.hasNext();) {
+				LineDistribute lineDistribute = (LineDistribute) iterator2.next();
+				//查询对应经纬度
+				String start_lon_lat = addressService.findLonAndLatByCode(lineDistribute.getStart());
+				String end_lon_lat = addressService.findLonAndLatByCode(lineDistribute.getEnd());
+				if(start_lon_lat!=null && end_lon_lat!=null){
+					String uniquid_all = GetUniquid.build();
+					Map<String,Object> filter_map_all = new HashMap<String,Object>();
+					filter_map_all.put("area", provinceCode);
+					filter_map_all.put("id", lineDistribute.getId());
+					String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+					Map<String,Object> content_map_all = new HashMap<String,Object>();
+					content_map_all.put("from", start_lon_lat);
+					content_map_all.put("to", end_lon_lat);
+					String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+					String comment_all = address.getName()+"的线路分布";
+					//查询统计该记录的数量,用于判断是否已统计过
+					Integer count = datavizService.countDatavizByField(field,provinceCode,null,null,lineDistribute.getId());
+					if(count > 0){
+						datavizService.updateDataviz(field, provinceCode, null, null, content_all,lineDistribute.getId());
+					}else{
+						datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+					}
+				}else{
+					continue;
+				}
+			}
+		}
+//		
+//		//市
+//		List<String> cityCodes = addressService.findCityCodeAll();
+//		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+//			String cityCode = (String) iterator.next();
+//			Address address = addressService.findAddressByCode(cityCode);
+//			//获取起始地和卸货地的code
+//			List<LineDistribute> list = transportCapacityService.getStratAndEndArea(null,cityCode);
+//			for (Iterator<LineDistribute> iterator2 = list.iterator(); iterator2.hasNext();) {
+//				LineDistribute lineDistribute = (LineDistribute) iterator2.next();
+//				//查询对应经纬度
+//				String start_lon_lat = addressService.findLonAndLatByCode(lineDistribute.getStart());
+//				String end_lon_lat = addressService.findLonAndLatByCode(lineDistribute.getEnd());
+//				String uniquid_all = GetUniquid.build();
+//				Map<String,Object> filter_map_all = new HashMap<String,Object>();
+//				filter_map_all.put("area", cityCode);
+//				filter_map_all.put("id", lineDistribute.getId());
+//				String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+//				Map<String,Object> content_map_all = new HashMap<String,Object>();
+//				content_map_all.put("from", start_lon_lat);
+//				content_map_all.put("to", end_lon_lat);
+//				String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+//				String comment_all = address.getName()+"的线路分布";
+//				//查询统计该记录的数量,用于判断是否已统计过
+//				Integer count = datavizService.countDatavizByField(field,cityCode,null,null,lineDistribute.getId());
+//				if(count > 0){
+//					datavizService.updateDataviz(field, cityCode, null, null, content_all,lineDistribute.getId());
+//				}else{
+//					datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+//				}
+//			}
+//		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+
+	
+	
+	//该省份车辆数
+	@RequestMapping(value = "/thisProvinceVehicleNumber.json")
+	public String thisProvinceVehicleNumber() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "thisProvinceVehicleNumber";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//查找车牌类型及对应的数量
+		List<Common> list = transportCapacityService.findPlateAndCount();
+		for (Iterator<Common> iterator = list.iterator(); iterator.hasNext();) {
+			Common common = (Common) iterator.next();
+			//根据返回的车牌号前两位查询对应区域
+			String area_code = transportCapacityService.findAreaCodeByPlate(common.getType());
+			if(area_code != null){
+				String uniquid_all = GetUniquid.build();
+				Map<String,Object> filter_map_all = new HashMap<String,Object>();
+				filter_map_all.put("area", area_code);
+				String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+				Map<String,Object> content_map_all = new HashMap<String,Object>();
+				content_map_all.put("value", "车辆："+common.getCount()+"辆");
+				content_map_all.put("url", "");
+				String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+				Address address = addressService.findAddressByCode(area_code);
+				String comment_all = "区域为"+address.getName()+"车辆区域热点分布";
+				//查询统计该记录的数量,用于判断是否已统计过
+				Integer count = datavizService.countDatavizByField(field,area_code,null,null,null);
+				if(count > 0){
+					datavizService.updateDataviz(field, area_code, null, null, content_all,null);
+				}else{
+					datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+				}
+			}else{
+				continue;
+			}
+		}
+//		//获取所有省
+//		List<String> provinceCodes = addressService.findProvinceCodeAll();
+//		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+//			String provinceCode = (String) iterator.next();
+//			Integer total = transportCapacityService.thisAreaVehicleNumber(provinceCode,null);
+//			String uniquid = GetUniquid.build();
+//			Map<String,Object> filter_map = new HashMap<String,Object>();
+//			filter_map.put("area", provinceCode);
+//			String filter = jacksonObjectMapper.writeValueAsString(filter_map);
+//			Map<String,Object> content_map = new HashMap<String,Object>();
+//			content_map.put("value", "车辆："+total+"辆");
+//			content_map.put("url", "");
+//			String content = jacksonObjectMapper.writeValueAsString(content_map);
+//			Address address = addressService.findAddressByCode(provinceCode);
+//			String comment = address.getName()+"车辆数";
+//			//查询统计该记录的数量,用于判断是否已统计过
+//			Integer count = datavizService.countDatavizByField(field,provinceCode,null,null,null);
+//			if(count > 0){
+//				datavizService.updateDataviz(field, provinceCode, null, null, content,null);
+//			}else{
+//				datavizService.saveDataviz(uniquid,field,filter,content,comment);
+//			}
+//		}
+//		//获取所有市
+//		List<String> cityCodes = addressService.findCityCodeAll();
+//		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+//			String cityCode = (String) iterator.next();
+//			Integer total = transportCapacityService.thisAreaVehicleNumber(null,cityCode);
+//			String uniquid = GetUniquid.build();
+//			Map<String,Object> filter_map = new HashMap<String,Object>();
+//			filter_map.put("area", cityCode);
+//			String filter = jacksonObjectMapper.writeValueAsString(filter_map);
+//			Map<String,Object> content_map = new HashMap<String,Object>();
+//			content_map.put("value", "车辆："+total+"辆");
+//			content_map.put("url", "");
+//			String content = jacksonObjectMapper.writeValueAsString(content_map);
+//			Address address = addressService.findAddressByCode(cityCode);
+//			String comment = address.getName()+"车辆数";
+//			//查询统计该记录的数量,用于判断是否已统计过
+//			Integer count = datavizService.countDatavizByField(field,cityCode,null,null,null);
+//			if(count > 0){
+//				datavizService.updateDataviz(field, cityCode, null, null, content,null);
+//			}else{
+//				datavizService.saveDataviz(uniquid,field,filter,content,comment);
+//			}
+//		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	
+	//该省份线路数量
+	@RequestMapping(value = "/thisProvinceLineNumber.json")
+	public String thisProvinceLineNumber() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "thisProvinceLineNumber";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//所有省份
+		List<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			
+			Integer total = transportCapacityService.thisProvinceLineNumber(provinceCode,null);
+			String uniquid = GetUniquid.build();
+			Map<String,Object> filter_map = new HashMap<String,Object>();
+			filter_map.put("area", provinceCode);
+			String filter = jacksonObjectMapper.writeValueAsString(filter_map);
+			Map<String,Object> content_map = new HashMap<String,Object>();
+			content_map.put("value", "线路："+total+"条");
+			content_map.put("url", "");
+			String content = jacksonObjectMapper.writeValueAsString(content_map);
+			Address address = addressService.findAddressByCode(provinceCode);
+			String comment = address.getName()+"线路数量";
+			//查询统计该记录的数量,用于判断是否已统计过
+			Integer count = datavizService.countDatavizByField(field,provinceCode,null,null,null);
+			if(count > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content,null);
+			}else{
+				datavizService.saveDataviz(uniquid,field,filter,content,comment);
+			}
+		}
+//		//获取所有市
+//		List<String> cityCodes = addressService.findCityCodeAll();
+//		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+//			String cityCode = (String) iterator.next();
+//			Integer total = transportCapacityService.thisProvinceLineNumber(null,cityCode);
+//			String uniquid = GetUniquid.build();
+//			Map<String,Object> filter_map = new HashMap<String,Object>();
+//			filter_map.put("area", cityCode);
+//			String filter = jacksonObjectMapper.writeValueAsString(filter_map);
+//			Map<String,Object> content_map = new HashMap<String,Object>();
+//			content_map.put("value", "线路："+total+"条");
+//			content_map.put("url", "");
+//			String content = jacksonObjectMapper.writeValueAsString(content_map);
+//			Address address = addressService.findAddressByCode(cityCode);
+//			String comment = address.getName()+"线路数量";
+//			//查询统计该记录的数量,用于判断是否已统计过
+//			Integer count = datavizService.countDatavizByField(field,cityCode,null,null,null);
+//			if(count > 0){
+//				datavizService.updateDataviz(field, cityCode, null, null, content,null);
+//			}else{
+//				datavizService.saveDataviz(uniquid,field,filter,content,comment);
+//			}
+//		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+}

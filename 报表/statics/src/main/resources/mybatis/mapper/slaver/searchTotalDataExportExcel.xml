@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.xusage.statics.dao.slaver.SearchTotalDataExportExcelDao">
+  
+  		
+  		<!-- 宁德excel操作 -->
+  		
+  		<select id="searchNingDeBaseByProvince" resultType="com.xusage.statics.pojo.CommentPojo">
+  		SELECT 
+			statics_basedata.dimension->>'$.province' as province,
+			statics_basedata.dimension->>'$.invoiceName' as invoiceName,
+			statics_basedata.dimension->>'$.consignorName' as consignorName,
+			statics_basedata.dimension->>'$.certificatDate' as certificatDate,
+			statics_basedata.coll_amount as invoiceAmount,
+			statics_basedata.cash_amount as entryTicketAmount
+		FROM 
+			hyll_wuliu.statics_basedata
+		WHERE
+			dimension->>'$.province' = '宁德'
+  		</select>	
+  			
+  		<select id="searchNingDeTotalDataExportExcel" resultType="String">
+  			SELECT 
+				statics_expandata.content
+			FROM 
+				hyll_wuliu.statics_expandata
+			WHERE
+				statics_expandata.name = '宁德衍生数据'
+  		</select>
+  
+  
+  
+  
+  		<!-- 福清excel操作 -->
+  
+  		<select id="searchFuQingBaseByProvince" resultType="com.xusage.statics.pojo.CommentPojo">
+  			SELECT 
+			statics_basedata.dimension->>'$.province' as province,
+			statics_basedata.dimension->>'$.departMent' as departMent,
+			statics_basedata.dimension->>'$.carrierName' as carrierName,
+			statics_basedata.dimension->>'$.consignorName' as consignorName,
+			statics_basedata.dimension->>'$.certificatDate' as certificatDate,
+			statics_basedata.coll_amount as invoiceAmount,
+			statics_basedata.cash_amount as entryTicketAmount
+		FROM 
+			hyll_wuliu.statics_basedata
+		WHERE
+			dimension->>'$.province' = '福清'
+  		</select>	
+  			
+  		<select id="searchFuQingTotalDataExportExcel" resultType="String">
+  			SELECT 
+				statics_expandata.content
+			FROM 
+				hyll_wuliu.statics_expandata
+			WHERE
+				statics_expandata.name = '福清衍生数据'
+  		</select>
+  
+  
+  
+  		<!-- 福州excel操作 -->
+  		
+  		<select id="searchFuZhouBaseByProvince" resultType="com.xusage.statics.pojo.CommentPojo">
+  		SELECT 
+			statics_basedata.dimension->>'$.province' as province,
+			statics_basedata.dimension->>'$.invoiceName' as invoiceName,
+			statics_basedata.dimension->>'$.consignorName' as consignorName,
+			statics_basedata.dimension->>'$.certificatDate' as certificatDate,
+			statics_basedata.coll_amount as invoiceAmount,
+			statics_basedata.cash_amount as entryTicketAmount
+		FROM 
+			hyll_wuliu.statics_basedata
+		WHERE
+			dimension->>'$.province' = '福州'
+  		</select>	
+  			
+  		<select id="searchFuZhouTotalDataExportExcel" resultType="String">
+  			SELECT 
+				statics_expandata.content
+			FROM 
+				hyll_wuliu.statics_expandata
+			WHERE
+				statics_expandata.name = '福州衍生数据'
+  		</select>
+  
+  
+</mapper>

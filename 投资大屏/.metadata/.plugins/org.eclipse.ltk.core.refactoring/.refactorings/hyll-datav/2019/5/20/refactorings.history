@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring accessors="true" comment="Delete 7 elements from project &apos;hyll-datav&apos;&#x0D;&#x0A;- Original project: &apos;hyll-datav&apos;&#x0D;&#x0A;- Original elements:&#x0D;&#x0A;     si.log.2019-04-22.0.gz&#x0D;&#x0A;     si.log.2019-04-29.0.gz&#x0D;&#x0A;     si.log.2019-05-05.0.gz&#x0D;&#x0A;     si.log.2019-05-06.0.gz&#x0D;&#x0A;     si.log.2019-05-07.0.gz&#x0D;&#x0A;     si.log.2019-05-08.0.gz&#x0D;&#x0A;     si.log.2019-05-09.0.gz" description="Delete elements" element1="logs/si.log.2019-05-05.0.gz" element2="logs/si.log.2019-04-29.0.gz" element3="logs/si.log.2019-05-09.0.gz" element4="logs/si.log.2019-05-08.0.gz" element5="logs/si.log.2019-04-22.0.gz" element6="logs/si.log.2019-05-07.0.gz" element7="logs/si.log.2019-05-06.0.gz" elements="0" flags="589830" id="org.eclipse.jdt.ui.delete" resources="7" stamp="1557899059185" subPackages="false" version="1.0"/>
+</session>

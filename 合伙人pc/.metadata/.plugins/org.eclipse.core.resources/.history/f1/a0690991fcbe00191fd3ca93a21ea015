@@ -1,0 +1,208 @@
+package xusage.carrier.launch.catering.mission;
+
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import xusage.carrier.launch.catering.po.Customer;
+import xusage.carrier.launch.catering.po.WayBill;
+import xusage.xmission.surface.ProcunitException;
+
+public class CreateWayBill implements xusage.carrier.launch.catering.surface.CreateWayBill {
+	
+	private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(CreateWayBill.class);
+
+	@Override
+	public synchronized Result execute(Parameter parameter) throws ProcunitException {
+		// 执行方法返回值 
+		LOGGER.debug("parameter:" + parameter.toString());
+		Result result = new Result();
+		if(parameter.getStatus() == null) {
+			return result;
+		}
+		Date now = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date order_time = null;
+		//order_time根据装货时间向前4个小时
+		try {
+			order_time = sdf.parse(parameter.getOrder_time());
+			long time = order_time.getTime() - 4*60*60*1000;
+			parameter.setOrder_time(sdf.format(new Date(time)));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//获取driverName
+		String driverName=null;
+		xusage.carrier.launch.catering.surface.SearchDriver.Parameter searchDriverParam = new xusage.carrier.launch.catering.surface.SearchDriver.Parameter();
+		searchDriverParam.setRef_id(parameter.getDriver());
+		List<xusage.carrier.launch.catering.surface.SearchDriver.Result> searchDriverRes = driver.searchDriver(searchDriverParam);
+		if(searchDriverRes != null && searchDriverRes.size() > 0) {
+			driverName = searchDriverRes.get(0).getDriver_name();
+			System.err.println(driverName);
+		}
+		
+		parameter.setDriver_name(driverName);
+		parameter.setOrder_time(parameter.getOrder_time() == ""? null : parameter.getOrder_time());
+//		parameter.setOrder_time(sdf.format(now));
+		parameter.setAssigned_operuser("admin");
+		parameter.setAssigned_opertime(sdf.format(now));
+		parameter.setTranspor_type(Integer.toString(1));
+		
+		xusage.carrier.launch.catering.surface.SearchWayBill.Parameter parameter4 = new xusage.carrier.launch.catering.surface.SearchWayBill.Parameter();
+		
+		SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
+		 String  str = sdf2.format(new Date());
+		 parameter4.setWaybill_start(str.substring(2, 4) + str.substring(5, 7) +  str.substring(8,10));
+			int count = excute.count(parameter4);
+			 String number = Integer.toString(++count);
+		 for(int i = 0; i < 5 -Integer.toString(count).length(); i++) {
+			 number = "0" + number;
+		 }
+		 String code =  str.substring(2, 4) + str.substring(5, 7) +  str.substring(8,10) + number;
+		 parameter.setWaybill_no("Y7" + code);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		if(Integer.parseInt(parameter.getStatus()) == 4){
+			parameter.setTotal_freight(parameter.getAssigned_freight());
+			parameter.setCash_pay_money(parameter.getAssigned_freight());
+			parameter.setOil_card_pay_money("0");
+		}
+		excute.createWayBill(parameter);
+		xusage.carrier.launch.catering.surface.UpdateOrder.Parameter parameter2 = new xusage.carrier.launch.catering.surface.UpdateOrder.Parameter();
+		parameter2.setAssigned_freight("1");
+		
+		//根据运单状态同步修改订单状态
+		if(Integer.parseInt(parameter.getStatus()) == 4 ) {
+			parameter2.setOrder_status(Integer.toString(5));
+		}else {
+			parameter2.setOrder_status(Integer.toString(1));
+		}
+		parameter2.setId(Integer.parseInt(parameter.getCargo_id()));
+		order.updateOrder(parameter2);
+		
+		
+		xusage.carrier.launch.catering.surface.CreateWaybillAccount.Parameter createWaybillAccountPara = new xusage.carrier.launch.catering.surface.CreateWaybillAccount.Parameter();
+		xusage.carrier.launch.catering.surface.CreateWaybillAccountDetail.Parameter createWaybillAccountDetailPara = new xusage.carrier.launch.catering.surface.CreateWaybillAccountDetail.Parameter();
+		//如果是订单已到达，添加运单核算表数据
+		if(Integer.parseInt(parameter.getStatus()) == 4){
+			createWaybillAccountPara.setWaybill_id(parameter.getId().toString());
+			createWaybillAccountPara.setTotal_freight(parameter.getAssigned_freight());//运费总额
+			createWaybillAccountPara.setOil_card_pay_money("0");//油卡支付金额
+			createWaybillAccountPara.setCash_pay_money(parameter.getAssigned_freight());
+			createWaybillAccountPara.setPart_pay_money(parameter.getAssigned_freight());
+			createWaybillAccountPara.setReceipt_pay_money("0");
+			createWaybillAccountPara.setLoading_pay_money("0");
+			createWaybillAccountPara.setDischarge_pay_money("0");
+			createWaybillAccountPara.setOther_pay_money("0");
+			
+			createWaybillAccount.execute(createWaybillAccountPara);
+			
+			createWaybillAccountDetailPara.setWaybill_id(parameter.getId().toString());
+			createWaybillAccountDetailPara.setTotal_freight(parameter.getAssigned_freight());
+			createWaybillAccountDetailPara.setPart_pay_money(parameter.getAssigned_freight());
+			createWaybillAccountDetailPara.setCash_pay_money(parameter.getAssigned_freight());
+			createWaybillAccountDetailPara.setOil_card_pay_money("0");
+			createWaybillAccountDetailPara.setReceipt_pay_money("0");
+			createWaybillAccountDetailPara.setLoading_pay_money("0");
+			createWaybillAccountDetailPara.setDischarge_pay_money("0");
+			createWaybillAccountDetailPara.setOther_pay_money("0");
+			//createWaybillAccountDetailPara.setDemo();
+			createWaybillAccountDetailPara.setCreate_time(xusage.carrier.launch.catering.util.DateUtils.getDate("yyyy-MM-dd HH:mm:ss"));
+			//createWaybillAccountDetailPara.setCreate_user(create_user);
+			createWaybillAccountDetail.execute(createWaybillAccountDetailPara);
+		}
+		
+		
+		
+		result.setId(parameter.getId());
+		return result;
+	}
+	
+	
+	
+	
+    private xusage.carrier.launch.catering.surface.CreateWaybillAccount createWaybillAccount;
+	
+	private xusage.carrier.launch.catering.surface.CreateWaybillAccountDetail createWaybillAccountDetail;
+	
+	private xusage.mysql.mybatis.surface.Driver driver;
+	
+	public xusage.mysql.mybatis.surface.Driver getDriver() {
+		return driver;
+	}
+	public void setDriver(xusage.mysql.mybatis.surface.Driver driver) {
+		this.driver = driver;
+	}
+
+	private xusage.mysql.mybatis.surface.Order order;
+
+	public xusage.mysql.mybatis.surface.Order getOrder() {
+		return order;
+	}
+	public void setOrder(xusage.mysql.mybatis.surface.Order order) {
+		this.order = order;
+	}
+	private xusage.mysql.mybatis.surface.WayBill excute;
+
+	
+	public xusage.mysql.mybatis.surface.WayBill getExcute() {
+		return excute;
+	}
+	public void setExcute(xusage.mysql.mybatis.surface.WayBill excute) {
+		this.excute = excute;
+	}
+	private ObjectMapper jacksonObjectMapper;
+
+	public ObjectMapper getJacksonObjectMapper() {
+		return jacksonObjectMapper;
+	}
+	public void setJacksonObjectMapper(ObjectMapper jacksonObjectMapper) {
+		this.jacksonObjectMapper = jacksonObjectMapper;
+	}
+	
+	public xusage.carrier.launch.catering.surface.CreateWaybillAccount getCreateWaybillAccount() {
+		return createWaybillAccount;
+	}
+	
+	public void setCreateWaybillAccount(xusage.carrier.launch.catering.surface.CreateWaybillAccount createWaybillAccount) {
+		this.createWaybillAccount = createWaybillAccount;
+	}
+	
+	public xusage.carrier.launch.catering.surface.CreateWaybillAccountDetail getCreateWaybillAccountDetail() {
+		return createWaybillAccountDetail;
+	}
+	
+	public void setCreateWaybillAccountDetail(
+			xusage.carrier.launch.catering.surface.CreateWaybillAccountDetail createWaybillAccountDetail) {
+		this.createWaybillAccountDetail = createWaybillAccountDetail;
+	}
+	
+	
+		
+	
+}

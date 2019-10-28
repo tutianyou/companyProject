@@ -1,0 +1,758 @@
+package xusage.carrier.launch.catering.mission;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import xusage.carrier.launch.catering.util.NumberUtils;
+import xusage.carrier.launch.catering.util.Tools;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import xusage.carrier.launch.catering.po.Customer;
+import xusage.xmission.surface.ProcunitException;
+
+public class Upload implements xusage.carrier.launch.catering.surface.Upload {
+
+	private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Upload.class);
+
+	@Override
+	public Result execute(Parameter parameter) throws ProcunitException {
+		Result result = new Result();
+		HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+				.getResponse();
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+				.getRequest();
+		response.setHeader("Access-Control-Allow-Origin", "*"); // 解决跨域访问报错
+		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
+		response.setHeader("Access-Control-Max-Age", "3600"); // 设置过期时间
+		response.setHeader("Access-Control-Allow-Headers",
+				"Origin, X-Requested-With, Content-Type, Accept, client_id, uuid, Authorization");
+		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // 支持HTTP
+																					// 1.1.
+		response.setHeader("Pragma", "no-cache"); // 支持HTTP 1.0.
+													// response.setHeader("Expires",
+													// "0");
+		// 执行方法返回值
+		LOGGER.debug("parameter:" + parameter.toString());
+		MultipartResolver resolver = new CommonsMultipartResolver(request.getSession().getServletContext());
+		MultipartHttpServletRequest multipartRequest = resolver.resolveMultipart(request);
+		MultipartFile file = multipartRequest.getFile("excel");
+		String fileName = file.getOriginalFilename();
+		InputStream is = null;
+		try {
+			is = file.getInputStream();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		// try {
+		// is = new FileInputStream(new File(fileName));
+		// } catch (FileNotFoundException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		Workbook hssfWorkbook = null;
+		if (fileName.endsWith("xlsx")) {
+			try {
+				hssfWorkbook = new XSSFWorkbook(is);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} // Excel 2007
+		} else if (fileName.endsWith("xls")) {
+			try {
+				hssfWorkbook = new HSSFWorkbook(is);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} // Excel 2003
+
+		}
+		List<HashMap<String, String>> list = new ArrayList<>();
+		// 循环工作表Sheet
+		for (int numSheet = 0; numSheet < hssfWorkbook.getNumberOfSheets(); numSheet++) {
+			Sheet hssfSheet = hssfWorkbook.getSheetAt(numSheet);
+			if (hssfSheet == null) {
+				continue;
+			}
+			// 循环行Row
+			int aa = hssfSheet.getLastRowNum();
+			for (int rowNum = 1; rowNum <= hssfSheet.getLastRowNum(); rowNum++) {
+				Row hssfRow = hssfSheet.getRow(rowNum);
+				int a = hssfSheet.getLastRowNum();
+				if (hssfRow != null) {
+					if ((hssfRow.getCell(0) == null) && (hssfRow.getCell(1) == null)) {
+						continue;
+					}
+					HashMap<String, String> map = new HashMap<>();
+					if (hssfRow.getCell(0) == null) {
+						result.setCol(0);
+						result.setRow(rowNum);
+						return result;
+					}
+					String consignor_name = hssfRow.getCell(0).toString();
+					if (!Tools.isNull(consignor_name.toString())) {
+						result.setCol(0);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(1) == null) {
+						result.setCol(1);
+						result.setRow(rowNum);
+						return result;
+					}
+					hssfRow.getCell(1).setCellType(XSSFCell.CELL_TYPE_STRING);
+					String consignor_phone = hssfRow.getCell(1).getStringCellValue();
+					if (!(Tools.isPhone(consignor_phone) || Tools.isTelphone(consignor_phone))) {
+						result.setCol(1);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(2) == null) {
+						result.setCol(2);
+						result.setRow(rowNum);
+						return result;
+					}
+					String deliver_name = hssfRow.getCell(2).toString();
+					if (!Tools.isNull(deliver_name)) {
+						result.setCol(2);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(3) == null) {
+						result.setCol(3);
+						result.setRow(rowNum);
+						return result;
+					}
+					hssfRow.getCell(3).setCellType(XSSFCell.CELL_TYPE_STRING);
+					String deliver_phone = hssfRow.getCell(3).getStringCellValue();
+					if (!(Tools.isPhone(deliver_phone) || Tools.isTelphone(deliver_phone))) {
+						result.setCol(3);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(4) == null) {
+						result.setCol(4);
+						result.setRow(rowNum);
+						return result;
+					}
+					String start_city = hssfRow.getCell(4).toString();
+					if (!Tools.isNull(start_city)) {
+						result.setCol(4);
+						result.setRow(rowNum);
+						return result;
+					}
+					String start_area = "";
+					if (hssfRow.getCell(5) != null) {
+						start_area = hssfRow.getCell(5).toString();
+						start_area = start_area == null ? "" : start_area;
+					}
+					// if(!Tools.isNull(start_area)) {
+					// result.setCol(5);
+					// result.setRow(rowNum);
+					// return result;
+					// }
+					if (hssfRow.getCell(6) == null) {
+						result.setCol(6);
+						result.setRow(rowNum);
+						return result;
+					}
+					String receiver_name = hssfRow.getCell(6).toString();
+					if (!Tools.isNull(receiver_name)) {
+						result.setCol(6);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(7) == null) {
+						result.setCol(7);
+						result.setRow(rowNum);
+						return result;
+					}
+					hssfRow.getCell(7).setCellType(XSSFCell.CELL_TYPE_STRING);
+					String receiver_phone = hssfRow.getCell(7).getStringCellValue();
+					if (!(Tools.isPhone(receiver_phone) || Tools.isTelphone(receiver_phone))) {
+						result.setCol(7);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(8) == null) {
+						result.setCol(8);
+						result.setRow(rowNum);
+						return result;
+					}
+					String end_city = hssfRow.getCell(8).toString();
+					if (!Tools.isNull(end_city)) {
+						result.setCol(8);
+						result.setRow(rowNum);
+						return result;
+					}
+					String end_area = "";
+					if (hssfRow.getCell(9) != null) {
+						end_area = hssfRow.getCell(9).toString();
+						end_area = end_area == null ? "" : end_area;
+					}
+					// if(!Tools.isNull(end_area)) {
+					// result.setCol(9);
+					// result.setRow(rowNum);
+					// return result;
+					// }
+					if (hssfRow.getCell(10) == null) {
+						result.setCol(10);
+						result.setRow(rowNum);
+						return result;
+					}
+					String goods_type = hssfRow.getCell(10).toString();
+					if (!Tools.isNull(goods_type)) {
+						result.setCol(10);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(11) == null) {
+						result.setCol(11);
+						result.setRow(rowNum);
+						return result;
+					}
+					String goods_num = hssfRow.getCell(11).toString();
+					if (!Tools.isNull(goods_num)) {
+						result.setCol(11);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(12) == null) {
+						result.setCol(12);
+						result.setRow(rowNum);
+						return result;
+					}
+					String goods_unit = hssfRow.getCell(12).toString();
+					HashMap<String, Integer> goods_unitEquals = new HashMap<>();
+					goods_unitEquals.put("吨", 100600);
+					goods_unitEquals.put("方", 100601);
+					goods_unitEquals.put("件", 100602);
+					goods_unitEquals.put("车", 100603);
+					goods_unitEquals.put("米", 100606);
+					//System.err.println(goods_unitEquals.get(goods_unit) == null);
+					if (goods_unitEquals.get(goods_unit) == null) {
+						result.setCol(12);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (!Tools.isNull(goods_unit)) {
+						result.setCol(12);
+						result.setRow(rowNum);
+						return result;
+					}
+					
+					if (hssfRow.getCell(13) == null) {
+						result.setCol(13);
+						result.setRow(rowNum);
+						return result;
+					}
+					String reference_freight = hssfRow.getCell(13).toString();
+					if (!Tools.isNull(reference_freight)) {
+						result.setCol(13);
+						result.setRow(rowNum);
+						return result;
+					}
+
+					if (hssfRow.getCell(14) == null) {
+						result.setCol(14);
+						result.setRow(rowNum);
+						return result;
+					}
+					String deliver_time = null;
+					Cell cell = hssfRow.getCell(14);
+					System.err.println(cell.getCellType());
+					if (cell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC) {
+						Date date = cell.getDateCellValue();
+						deliver_time = DateFormatUtils.format(date, "yyyy-MM-dd HH:mm:ss");
+					} else {
+						deliver_time = hssfRow.getCell(14).toString().replace("/", "-");
+						//判断能否转换为日期
+						if(!xusage.carrier.launch.catering.util.DateUtils.isValidDate(deliver_time, "yyyy-MM-dd HH:mm:ss")){
+	                    	result.setCol(14);
+							result.setRow(rowNum);
+							return result;
+	                    }
+					}
+                    
+					if (!Tools.isNull(deliver_time)) {
+						result.setCol(14);
+						result.setRow(rowNum);
+						return result;
+					}
+
+					// if(hssfRow.getCell(14) == null) {
+					// result.setCol(14);
+					// result.setRow(rowNum);
+					// return result;
+					// }
+					// hssfRow.getCell(14).setCellType(XSSFCell.CELL_TYPE_STRING);
+					// String deliver_time =
+					// hssfRow.getCell(14).toString().replace("/", "-");
+					// if(!Tools.isNull(deliver_time)) {
+					// result.setCol(14);
+					// result.setRow(rowNum);
+					// return result;
+					// }
+					// if(deliver_time.indexOf("-") == -1) {
+					// result.setCol(14);
+					// result.setRow(rowNum);
+					// return result;
+					// }
+
+					String unloading_time = null;
+					// hssfRow.getCell(14).setCellType(XSSFCell.CELL_TYPE_STRING);
+					Cell cell1 = hssfRow.getCell(15);
+					System.err.println(cell1.getCellType());
+					if (cell1.getCellType() == HSSFCell.CELL_TYPE_NUMERIC) {
+						Date date = cell1.getDateCellValue();
+						unloading_time = DateFormatUtils.format(date, "yyyy-MM-dd HH:mm:ss");
+					} else {
+						//判断能否转换为日期
+						unloading_time = hssfRow.getCell(15).toString().replace("/", "-");
+						if(!xusage.carrier.launch.catering.util.DateUtils.isValidDate(unloading_time, "yyyy-MM-dd HH:mm:ss")){
+	                    	result.setCol(15);
+							result.setRow(rowNum);
+							return result;
+	                    }
+					}
+					
+					if (!Tools.isNull(unloading_time)) {
+						result.setCol(15);
+						result.setRow(rowNum);
+						return result;
+					}
+
+					// if(hssfRow.getCell(15) == null) {
+					// result.setCol(15);
+					// result.setRow(rowNum);
+					// return result;
+					// }
+					// hssfRow.getCell(15).setCellType(XSSFCell.CELL_TYPE_STRING);
+					// String unloading_time =
+					// hssfRow.getCell(15).toString().replace("/", "-");
+					// if(!Tools.isNull(unloading_time)) {
+					// result.setCol(15);
+					// result.setRow(rowNum);
+					// return result;
+					// }
+					if (hssfRow.getCell(16) == null) {
+						result.setCol(16);
+						result.setRow(rowNum);
+						return result;
+					}
+					String plate_no = hssfRow.getCell(16).toString();
+					if (!Tools.isCarNo(plate_no)) {
+						result.setCol(16);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(17) == null) {
+						result.setCol(17);
+						result.setRow(rowNum);
+						return result;
+					}
+					String driver_name = hssfRow.getCell(17).toString();
+					if (!Tools.isNull(driver_name)) {
+						result.setCol(17);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(18) == null) {
+						result.setCol(18);
+						result.setRow(rowNum);
+						return result;
+					}
+					hssfRow.getCell(18).setCellType(XSSFCell.CELL_TYPE_STRING);
+					String driver_phone = hssfRow.getCell(18).getStringCellValue();
+					if (!Tools.isPhone(driver_phone)) {
+						result.setCol(18);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(19) == null) {
+						result.setCol(19);
+						result.setRow(rowNum);
+						return result;
+					}
+					String pay_freight = hssfRow.getCell(19).toString();
+					if (!Tools.isNull(pay_freight)) {
+						result.setCol(19);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(20) == null) {
+						result.setCol(20);
+						result.setRow(rowNum);
+						return result;
+					}
+					String carrier_name = hssfRow.getCell(20).toString();
+					if (!Tools.isNull(carrier_name)) {
+						result.setCol(20);
+						result.setRow(rowNum);
+						return result;
+					}
+					if (hssfRow.getCell(21) == null) {
+						result.setCol(21);
+						result.setRow(rowNum);
+						return result;
+					}
+					hssfRow.getCell(21).setCellType(XSSFCell.CELL_TYPE_STRING);
+					String carrier_phone = hssfRow.getCell(21).getStringCellValue();
+					if (!Tools.isNull(carrier_phone)) {
+						result.setCol(21);
+						result.setRow(rowNum);
+						return result;
+					}
+					
+					String bill_no = "";
+					//厂单号不做提示，可以为空
+					if (hssfRow.getCell(22) != null) {
+					  hssfRow.getCell(22).setCellType(XSSFCell.CELL_TYPE_STRING);
+					  bill_no = hssfRow.getCell(22).toString();
+					}
+					
+					
+					map.put("consignor_name", consignor_name);
+					map.put("consignor_phone", consignor_phone);
+					map.put("deliver_name", deliver_name);
+					map.put("deliver_phone", deliver_phone);
+					map.put("start_city", start_city);
+					map.put("start_area", start_area);
+					map.put("receiver_name", receiver_name);
+					map.put("receiver_phone", receiver_phone);
+					map.put("end_city", end_city);
+					map.put("end_area", end_area);
+					map.put("goods_type", goods_type);
+					map.put("goods_num", NumberUtils.keepPrecision(goods_num, 3));
+					map.put("goods_unit", goods_unit);
+					map.put("reference_freight", NumberUtils.keepPrecision(reference_freight, 2));
+					map.put("deliver_time", deliver_time);
+					map.put("unloading_time", unloading_time);
+					map.put("plate_no", plate_no);
+					map.put("driver_name", driver_name);
+					map.put("driver_phone", driver_phone);
+					map.put("pay_freight", NumberUtils.keepPrecision(pay_freight, 2));
+					map.put("carrier_name", carrier_name);
+					map.put("carrier_phone", carrier_phone);
+					map.put("bill_no", bill_no);
+					list.add(map);
+				}
+			}
+		}
+		int success = 0;
+		for (HashMap<String, String> map : list) {
+			success++;
+			int customerId = 0;
+			xusage.carrier.launch.catering.surface.CreateCustomer.Parameter parameter1 = new xusage.carrier.launch.catering.surface.CreateCustomer.Parameter();
+			xusage.carrier.launch.catering.surface.SearchCustomer.Parameter parameter12 = new xusage.carrier.launch.catering.surface.SearchCustomer.Parameter();
+
+			parameter1.setCustomer_name(map.get("consignor_name"));
+			parameter1.setPhone(map.get("consignor_phone"));
+			parameter12.setPhone(map.get("consignor_phone"));
+			parameter12.setCreater_id(Integer.toString(parameter.getId()));
+			parameter1.setCreater_id(Integer.toString(parameter.getId()));
+
+			List<xusage.carrier.launch.catering.surface.SearchCustomer.Result> result1 = searchCustomer
+					.execute(parameter12);
+			if ((result1 != null) && (!result1.isEmpty())) {
+				customerId = result1.get(0).getId();
+			} else {
+				customerId = customer.execute(parameter1).getId();
+			}
+
+			xusage.carrier.launch.catering.surface.CreateDriver.Parameter parameter2 = new xusage.carrier.launch.catering.surface.CreateDriver.Parameter();
+			xusage.carrier.launch.catering.surface.SearchDriver.Parameter parameter22 = new xusage.carrier.launch.catering.surface.SearchDriver.Parameter();
+			int driverId = 0;
+			parameter2.setDriver_name(map.get("driver_name"));
+			parameter2.setDriver_phone(map.get("driver_phone"));
+			parameter2.setCarrier_id(Integer.toString(parameter.getId()));
+			parameter22.setDriver_phone(map.get("driver_phone"));
+			parameter22.setCarrier_id(Integer.toString(parameter.getId()));
+
+			xusage.carrier.launch.catering.surface.SearchDriverTable.Parameter SearchDriverTablePara = new xusage.carrier.launch.catering.surface.SearchDriverTable.Parameter();
+			SearchDriverTablePara.setPhone_num(map.get("driver_phone"));
+			List<xusage.carrier.launch.catering.surface.SearchDriver.Result> result2 = searchDriver
+					.execute(parameter22);
+			// List<xusage.carrier.launch.catering.surface.SearchDriver.Result>
+			// result2 = searchDriver.execute(parameter22);
+			if ((result2 != null) && (!result2.isEmpty())) {
+				driverId = Integer.valueOf(result2.get(0).getRef_id());
+			} else {
+				driverId = driver.execute(parameter2).getId();// 存的是 ref_id
+				// System.err.println(driverId);
+			}
+
+			xusage.carrier.launch.catering.surface.CreateVehicle.Parameter parameter3 = new xusage.carrier.launch.catering.surface.CreateVehicle.Parameter();
+			xusage.carrier.launch.catering.surface.SearchVehicle.Parameter parameter33 = new xusage.carrier.launch.catering.surface.SearchVehicle.Parameter();
+			parameter33.setPlate_no(map.get("plate_no"));
+			parameter33.setCarrier_id(Integer.toString(parameter.getId()));
+			// parameter3.setCreater_id(Integer.toString(parameter.getId()));
+			parameter3.setPlate_no(map.get("plate_no"));
+			parameter3.setCarrier_id(parameter.getId().toString());
+			// parameter3.setCarrier_driver_id(driverId);
+			int vehicleId = 0;
+
+			List<xusage.carrier.launch.catering.surface.SearchVehicle.Result> result3 = searchVehicle
+					.execute(parameter33);
+			if ((result3 != null) && (!result3.isEmpty())) {
+				vehicleId = result3.get(0).getId();
+			} else {
+				vehicleId = vehicle.execute(parameter3).getId();
+			}
+			// System.err.println(driverId);
+
+			xusage.carrier.launch.catering.surface.CreateOrder.Parameter parameter4 = new xusage.carrier.launch.catering.surface.CreateOrder.Parameter();
+			parameter4.setCopartner_id(Integer.toString(parameter.getId()));
+			parameter4.setCargo_no("D7" + Tools.autoCode());
+			parameter4.setConsignor_id(Integer.toString(parameter.getId()));
+			parameter4.setConsignor_name(map.get("consignor_name"));
+			parameter4.setConsignor_phone(map.get("consignor_phone"));
+			parameter4.setStart_detail_address(map.get("start_city") + map.get("start_area"));
+			parameter4.setEnd_detail_address(map.get("end_city") + map.get("end_area"));
+			parameter4.setStart_address(map.get("start_area"));
+			parameter4.setEnd_address(map.get("end_area"));
+			parameter4.setStart_area(map.get("start_city"));
+			parameter4.setEnd_area(map.get("end_city"));
+			parameter4.setDelivery_date(map.get("deliver_time"));
+			parameter4.setIsConsignor_name("2");
+			if(StringUtils.isNotBlank(map.get("bill_no"))) {
+				parameter4.setBill_no(map.get("bill_no"));
+			}
+			HashMap<String, Integer> goods_type = new HashMap<>();
+			goods_type.put("食品", 100500);
+			goods_type.put("生鲜", 100501);
+			goods_type.put("蔬菜", 100502);
+			goods_type.put("家畜", 100503);
+			goods_type.put("药品", 100504);
+			goods_type.put("建材", 100505);
+			goods_type.put("木材", 100506);
+			goods_type.put("设备", 100507);
+			goods_type.put("矿产", 100508);
+			goods_type.put("纺织品", 100509);
+			goods_type.put("日用品", 100512);
+			goods_type.put("电子电器", 100513);
+			goods_type.put("农副产品", 100514);
+			goods_type.put("其他", 100515);
+			goods_type.put("甩挂整车", 100516);
+			goods_type.put("普货", 100517);
+			goods_type.put("水果", 100518);
+			goods_type.put("重货", 100519);
+			goods_type.put("泡货", 100520);
+			goods_type.put("化工", 100521);
+			goods_type.put("配件", 100522);
+			goods_type.put("集装箱", 100523);
+			if (goods_type.get(map.get("goods_type")) != null) {
+				parameter4.setGoods_type(Integer.toString(goods_type.get(map.get("goods_type"))));
+			} else {
+				parameter4.setGoods_type_supplement(map.get("goods_type"));
+			}
+			parameter4.setGoods_num(map.get("goods_num"));
+			parameter4.setReference_freight(map.get("reference_freight"));
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			Date date = null;
+			try {
+				date = sdf.parse(map.get("deliver_time"));
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(date);
+			cal.add(Calendar.DAY_OF_MONTH, -1);
+			parameter4.setOrder_status("5");
+			parameter4.setSettlement_status("0");
+			parameter4.setSettlement_method("1");
+			HashMap<String, Integer> goods_unit = new HashMap<>();
+			goods_unit.put("吨", 100600);
+			goods_unit.put("方", 100601);
+			goods_unit.put("件", 100602);
+			goods_unit.put("车", 100603);
+			goods_unit.put("米", 100606);
+			parameter4.setGoods_unit(Integer.toString(goods_unit.get(map.get("goods_unit"))));
+			parameter4.setReceiver_name(map.get("receiver_name"));
+			parameter4.setReceiver_phone(map.get("receiver_phone"));
+			parameter4.setDeliver_name(map.get("deliver_name"));
+			parameter4.setDeliver_phone(map.get("deliver_phone"));
+			String cargo_id = Integer.toString(order.execute(parameter4).getId());
+
+			xusage.carrier.launch.catering.surface.CreateWayBill.Parameter parameter5 = new xusage.carrier.launch.catering.surface.CreateWayBill.Parameter();
+			parameter5.setCarrier_id(Integer.toString(parameter.getId()));
+			parameter5.setWaybill_no("Y7" + Tools.autoCode());
+			parameter5.setCargo_id(cargo_id);
+			parameter5.setCarrier_name(map.get("carrier_name"));
+			parameter5.setCarrier_phone(map.get("carrier_phone"));
+			parameter5.setOrder_time(map.get("deliver_time"));
+			parameter5.setGoods_num(map.get("goods_num"));
+			parameter5.setStatus("4");
+			// parameter5.setMemo(map.get("goods_num")+",1,1,1");
+			parameter5.setRealpay_freight(map.get("reference_freight"));
+			parameter5.setAssigned_freight(map.get("pay_freight"));
+			parameter5.setReference_freight(map.get("reference_freight"));
+			
+			//2019-7-8 增加运费核算
+			parameter5.setCash_pay_money(map.get("pay_freight"));//现金支付金额 cash_pay_mooney = assgned_freight
+			parameter5.setOil_card_pay_money("0");
+			//parameter5.setIsTotalFreight("1");
+			parameter5.setTotal_freight(map.get("pay_freight"));
+			Integer waybill_id = wayBill.execute(parameter5).getId();
+           
+			xusage.carrier.launch.catering.surface.CreatePlan.Parameter parameter6 = new xusage.carrier.launch.catering.surface.CreatePlan.Parameter();
+			System.err.println("-------------------------------------");
+			parameter6.setDriver_id(Integer.toString(driverId));
+			parameter6.setDriver_name(map.get("driver_name"));
+			parameter6.setDriver_phone(map.get("driver_phone"));
+			parameter6.setLoading_time(map.get("deliver_time"));
+			parameter6.setPlate_no(map.get("plate_no"));
+			parameter6.setUnloading_time(map.get("unloading_time"));
+			System.err.println(map.get("unloading_time") + "00000000000000000000000000000");
+			parameter6.setVehicle_id(Integer.toString(vehicleId));
+			parameter6.setWaybill_id(Integer.toString(waybill_id));
+			plan.createPlan(parameter6);
+			Integer planId = parameter6.getId();
+
+			xusage.carrier.launch.catering.surface.CreateAttach.Parameter parameter7 = new xusage.carrier.launch.catering.surface.CreateAttach.Parameter();
+			parameter7.setDetail_id(Integer.toString(planId));
+			parameter7.setDischarge_num(map.get("goods_num"));
+			parameter7.setLoad_num(map.get("goods_num"));
+			Integer attachId = attach.createAttach(parameter7);
+
+			
+		}
+		result.setSuccess(success);
+
+		result.setHah(list);
+
+		return result;
+	}
+	
+
+	private xusage.carrier.launch.catering.surface.CreateCustomer customer;
+
+	private xusage.carrier.launch.catering.surface.SearchDriverTable searchDriverTable;
+
+	private xusage.carrier.launch.catering.surface.SearchCustomer searchCustomer;
+
+	private xusage.carrier.launch.catering.surface.CreateVehicle vehicle;
+
+	private xusage.carrier.launch.catering.surface.SearchVehicle searchVehicle;
+
+	private xusage.carrier.launch.catering.surface.CreateDriver driver;
+
+	private xusage.carrier.launch.catering.surface.SearchDriver searchDriver;
+
+	private xusage.carrier.launch.catering.surface.CreateOrder order;
+
+	private xusage.carrier.launch.catering.surface.CreateWayBill wayBill;
+	
+	
+    
+	
+	
+	
+	
+	
+
+	public void setCustomer(xusage.carrier.launch.catering.surface.CreateCustomer customer) {
+		this.customer = customer;
+	}
+
+	public void setVehicle(xusage.carrier.launch.catering.surface.CreateVehicle vehicle) {
+		this.vehicle = vehicle;
+	}
+
+	public void setDriver(xusage.carrier.launch.catering.surface.CreateDriver driver) {
+		this.driver = driver;
+	}
+
+	public void setOrder(xusage.carrier.launch.catering.surface.CreateOrder order) {
+		this.order = order;
+	}
+
+	public void setWayBill(xusage.carrier.launch.catering.surface.CreateWayBill wayBill) {
+		this.wayBill = wayBill;
+	}
+
+	public void setSearchCustomer(xusage.carrier.launch.catering.surface.SearchCustomer searchCustomer) {
+		this.searchCustomer = searchCustomer;
+	}
+
+	public void setSearchVehicle(xusage.carrier.launch.catering.surface.SearchVehicle searchVehicle) {
+		this.searchVehicle = searchVehicle;
+	}
+
+	public void setSearchDriver(xusage.carrier.launch.catering.surface.SearchDriver searchDriver) {
+		this.searchDriver = searchDriver;
+	}
+
+	private xusage.mysql.mybatis.surface.Plan plan;
+
+	public xusage.mysql.mybatis.surface.Plan getPlan() {
+		return plan;
+	}
+
+	public void setPlan(xusage.mysql.mybatis.surface.Plan plan) {
+		this.plan = plan;
+	}
+
+	private xusage.mysql.mybatis.surface.Attach attach;
+
+	public xusage.mysql.mybatis.surface.Attach getAttach() {
+		return attach;
+	}
+
+	public void setAttach(xusage.mysql.mybatis.surface.Attach attach) {
+		this.attach = attach;
+	}
+
+	private xusage.mysql.mybatis.surface.Settle settle;
+
+	public void setSettle(xusage.mysql.mybatis.surface.Settle settle) {
+		this.settle = settle;
+	}
+
+	public xusage.carrier.launch.catering.surface.SearchDriverTable getSearchDriverTable() {
+		return searchDriverTable;
+	}
+
+	public void setSearchDriverTable(xusage.carrier.launch.catering.surface.SearchDriverTable searchDriverTable) {
+		this.searchDriverTable = searchDriverTable;
+	}
+
+}

@@ -1,0 +1,46 @@
+server:
+  port: 19920
+
+spring:
+  profiles:
+    active: dev
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://192.168.0.208:3306/?useUnicode=true&characterEncoding=utf8
+#    username: root
+#    password: GoodLuck!APP2.0
+    url: jdbc:mysql:///?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: root
+
+    druid:
+      minEvictableIdleTimeMillis: 300000
+      testWhileIdle: true
+      testOnBorrow: true
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      filters: stat,wall,log4j
+      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+      useGlobalDataSourceStat: true
+  thymeleaf:
+    cache: false
+  application:
+    name: DigitalChina
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/*.xml
+  config-location: classpath:mybatis/config.xml
+
+logging:
+  level:
+    com.hyll.dc.dao: DEBUG
+  file:
+    logs/si.log
+

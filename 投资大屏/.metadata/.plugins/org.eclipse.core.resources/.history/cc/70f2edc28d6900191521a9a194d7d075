@@ -1,0 +1,20 @@
+
+var prefix="http://49.4.1.185:20000" 
+//var prefix="http://192.168.233.1:20000" 
+
+//var prefix = "http://192.168.75.1:20000"
+
+
+global.urlConfig = {
+
+	findDatavizField:prefix + '/datavizField/findDatavizField.json',
+
+	findDatavizAll:prefix + '/datavizField/findDatavizAll.json' ,
+
+	findSelectField:prefix + '/datavizField/findSelectField.json',
+
+	findAdaptField:prefix + '/datavizField/findAdaptField.json',
+
+	saveOffseting:prefix +	'/datavizField/saveOffseting.json',
+
+}

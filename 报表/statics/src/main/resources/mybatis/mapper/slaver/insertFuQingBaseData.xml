@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xusage.statics.dao.slaver.insertFuQingBaseDataDao">
+	
+	<insert id="insertFuQingBaseData">
+	INSERT INTO
+		 hyll_wuliu.statics_basedata
+	SET
+		 statics_basedata.dimension = #{dimension},
+		 
+		 statics_basedata.coll_amount = #{coll_amount},
+		 
+		 statics_basedata.cash_amount = #{cash_amount}
+		 
+	</insert>
+
+</mapper>

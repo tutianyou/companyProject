@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy element &apos;SearchWayBillAndOrder.json.spring.xml&apos; to &apos;carrier.partner.serving/src/main/java/xusage.carrier.launch.catering.handle.Ticket&apos;&#x0D;&#x0A;- Original project: &apos;carrier.partner.serving&apos;&#x0D;&#x0A;- Destination element: &apos;carrier.partner.serving/src/main/java/xusage.carrier.launch.catering.handle.Ticket&apos;&#x0D;&#x0A;- Original element: &apos;SearchWayBillAndOrder.json.spring.xml&apos;" description="Copy file" destination="/src\/main\/java&lt;xusage.carrier.launch.catering.handle.Ticket" element1="src/main/java/xusage/carrier/launch/catering/handle/Ticket/SearchWayBillAndOrder.json.spring.xml" files="1" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1564468249364" units="0" version="1.0"/>
+</session>

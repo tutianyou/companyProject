@@ -1,0 +1,76 @@
+package xusage.carrier.launch.catering.mission;
+
+import java.util.List;
+
+import xusage.xmission.surface.ProcunitException;
+
+public class UpdatePlan implements xusage.carrier.launch.catering.surface.UpdatePlan {
+
+	private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(UpdatePlan.class);
+
+	@Override
+	public Result execute(Parameter parameter) throws ProcunitException {
+		// 执行方法返回值
+		LOGGER.debug("parameter:" + parameter.toString());
+		Result result = new Result();
+
+		xusage.carrier.launch.catering.surface.SearchDriver.Parameter searchDriverParam = new xusage.carrier.launch.catering.surface.SearchDriver.Parameter();
+		xusage.carrier.launch.catering.surface.SearchVehicle.Parameter searchVehiclearam = new xusage.carrier.launch.catering.surface.SearchVehicle.Parameter();
+		searchDriverParam.setDriver_phone(parameter.getDriver_phone());
+		// System.err.println(parameter.getDriver_id());
+		searchVehiclearam.setId(parameter.getVehicle_id());
+
+		if (parameter.getDriver_phone() != "" && parameter.getDriver_phone() != null) {
+			List<xusage.carrier.launch.catering.surface.SearchDriver.Result> searchDriver = driver.searchDriver(searchDriverParam);
+			if (searchDriver != null && searchDriver.size() > 0) {
+				parameter.setDriver_name(searchDriver.get(0).getDriver_name());
+				parameter.setDriver_phone(searchDriver.get(0).getDriver_phone());
+				System.err.println(searchDriver.get(0).getDriver_name() + ":" + searchDriver.get(0).getDriver_phone());
+			}
+		}
+
+		if (parameter.getVehicle_id() != "" && parameter.getVehicle_id() != null) {
+			List<xusage.carrier.launch.catering.surface.SearchVehicle.Result> searchVehicle = vehicle.searchVehicle(searchVehiclearam);
+			if (searchVehicle != null && searchVehicle.size() > 0) {
+				parameter.setPlate_no(searchVehicle.get(0).getPlate_no());
+				System.err.println(parameter.getId());
+				System.err.println(searchVehicle.get(0).getPlate_no());
+			}
+		}
+
+		Integer updatePlan = plan.updatePlan(parameter);
+		result.setResult(updatePlan);
+		System.err.println("司机姓名是：" + parameter.getDriver_name() + "车牌号是：" + parameter.getPlate_no());
+		System.err.println(updatePlan);
+		return result;
+	}
+
+	private xusage.mysql.mybatis.surface.Driver driver;
+	private xusage.mysql.mybatis.surface.Plan plan;
+	private xusage.mysql.mybatis.surface.Vehicle vehicle;
+
+	public xusage.mysql.mybatis.surface.Plan getPlan() {
+		return plan;
+	}
+
+	public void setPlan(xusage.mysql.mybatis.surface.Plan plan) {
+		this.plan = plan;
+	}
+
+	public xusage.mysql.mybatis.surface.Driver getDriver() {
+		return driver;
+	}
+
+	public void setDriver(xusage.mysql.mybatis.surface.Driver driver) {
+		this.driver = driver;
+	}
+
+	public xusage.mysql.mybatis.surface.Vehicle getVehicle() {
+		return vehicle;
+	}
+
+	public void setVehicle(xusage.mysql.mybatis.surface.Vehicle vehicle) {
+		this.vehicle = vehicle;
+	}
+
+}

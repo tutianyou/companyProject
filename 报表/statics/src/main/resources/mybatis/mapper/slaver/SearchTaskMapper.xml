@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.xusage.statics.dao.slaver.SearchTaskDao">
+  
+  		
+  		<!-- 查询任务列表 -->
+  			
+		 <select id="searchTask" resultType="com.xusage.statics.pojo.Task">
+		  SELECT
+			 qrtz_triggers.JOB_NAME as jobName,
+			 qrtz_triggers.JOB_GROUP as jobGroup,
+			 qrtz_job_details.JOB_CLASS_NAME as jobClassName,
+			 qrtz_cron_triggers.CRON_EXPRESSION as cronExpression,
+			 qrtz_job_details.DESCRIPTION as description
+		  FROM 
+			 hyll_wuliu.qrtz_triggers
+		  LEFT JOIN hyll_wuliu.qrtz_job_details ON hyll_wuliu.qrtz_triggers.JOB_NAME = hyll_wuliu.qrtz_job_details.JOB_NAME 
+		  LEFT JOIN hyll_wuliu.qrtz_cron_triggers ON hyll_wuliu.qrtz_triggers.TRIGGER_NAME = hyll_wuliu.qrtz_cron_triggers.TRIGGER_NAME
+		  <if test="length != null">
+										LIMIT 
+								<if test="offset != null">#{offset}, </if>
+												#{length}
+								</if>
+		 </select>
+		 
+		 
+		 <select id="count" resultType="Integer">
+		  SELECT
+			 count(1)
+		  FROM 
+			 hyll_wuliu.qrtz_triggers
+		  LEFT JOIN hyll_wuliu.qrtz_job_details ON hyll_wuliu.qrtz_triggers.JOB_NAME = hyll_wuliu.qrtz_job_details.JOB_NAME 
+		  LEFT JOIN hyll_wuliu.qrtz_cron_triggers ON hyll_wuliu.qrtz_triggers.TRIGGER_NAME = hyll_wuliu.qrtz_cron_triggers.TRIGGER_NAME
+		 </select>
+		 
+</mapper>

@@ -1,0 +1,8 @@
+INDEX VERSION 1.4+F:\carrierworkspace\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
+3760066557.index
+786716558.index
+174460532.index
+1467894631.index
+627056560.index
+3333542407.index
+688583221.index

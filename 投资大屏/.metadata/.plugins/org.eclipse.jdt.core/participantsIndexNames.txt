@@ -1,0 +1,9 @@
+INDEX VERSION 1.131
+F:\datavizworkspace\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\1751867351.index
+\org.news\src\main\java
+F:\datavizworkspace\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\2210568713.index
+\org.news\src\main\java
+F:\datavizworkspace\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\2136848653.index
+\org.news\src\main\java
+F:\datavizworkspace\.metadata\.plugins\org.eclipse.jst.jsp.core\jspsearch\3441883968.index
+\org.news\src\main\java

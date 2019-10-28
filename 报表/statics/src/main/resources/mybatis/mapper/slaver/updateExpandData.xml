@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.xusage.statics.dao.slaver.UpdateExpandDataDao">
+
+
+		<!-- 更新宁德的基础数据 -->
+		<update id="updateNingDeBaseData">
+		update 
+		 	hyll_wuliu.statics_basedata
+		SET
+			 statics_basedata.dimension = #{dimension},
+			 
+			 statics_basedata.coll_amount = #{coll_amount},
+			 
+			 statics_basedata.cash_amount = #{cash_amount}
+		WHERE
+			statics_basedata.dimension->>'$.province' = '宁德'
+		AND 
+			statics_basedata.dimension->>'$.consignorName' = #{consignorName}
+		AND	
+			statics_basedata.dimension->>'$.certificatDate' = #{certificatDate}
+		</update>
+	
+
+		<!-- 更新宁德的衍生数据 -->
+		<update id="updateNingDeExpandData">
+		UPDATE 
+			hyll_wuliu.statics_expandata 
+		SET 
+			statics_expandata.updatetime = #{updatetime},
+	
+			statics_expandata.content = #{content}
+		WHERE
+			statics_expandata.name = '宁德衍生数据'
+		</update>
+		
+		
+		
+		
+		
+		
+		
+		<!-- 更新福清的基础数据 -->
+		<update id="updateFuQingBaseData">
+		update 
+		 	hyll_wuliu.statics_basedata
+		SET
+			 statics_basedata.dimension = #{dimension},
+			 
+			 statics_basedata.coll_amount = #{coll_amount},
+			 
+			 statics_basedata.cash_amount = #{cash_amount}
+		WHERE
+			statics_basedata.dimension->>'$.province' = '福清'
+		AND 
+			statics_basedata.dimension->>'$.consignorName' = #{consignorName}
+		AND	
+			statics_basedata.dimension->>'$.certificatDate' = #{certificatDate}
+		AND 
+		  	statics_basedata.dimension->>'$.departMent' = #{departMent}
+		</update>
+		
+		
+		<!-- 更新福清的衍生数据 -->
+		<update id="updateFuQingExpandData">
+		UPDATE 
+			hyll_wuliu.statics_expandata 
+		SET 
+			statics_expandata.updatetime = #{updatetime},
+	
+			statics_expandata.content = #{content}
+		WHERE
+			statics_expandata.name = '福清衍生数据'
+		</update>
+		
+		
+		
+		
+		
+		
+		
+		<!-- 更新福州的基础数据 -->
+		<update id="updateFuZhouBaseData">
+		update 
+		 	hyll_wuliu.statics_basedata
+		SET
+			 statics_basedata.dimension = #{dimension},
+			 
+			 statics_basedata.coll_amount = #{coll_amount},
+			 
+			 statics_basedata.cash_amount = #{cash_amount}
+		WHERE
+			statics_basedata.dimension->>'$.province' = '福州'
+		AND 
+			statics_basedata.dimension->>'$.consignorName' = #{consignorName}
+		AND	
+			statics_basedata.dimension->>'$.certificatDate' = #{certificatDate}
+		</update>
+		
+		
+		<!-- 更新福州的衍生数据 -->
+		<update id="updateFuZhouExpandData">
+		UPDATE 
+			hyll_wuliu.statics_expandata 
+		SET 
+			statics_expandata.updatetime = #{updatetime},
+	
+			statics_expandata.content = #{content}
+		WHERE
+			statics_expandata.name = '福州衍生数据'
+		</update>
+	 
+</mapper>

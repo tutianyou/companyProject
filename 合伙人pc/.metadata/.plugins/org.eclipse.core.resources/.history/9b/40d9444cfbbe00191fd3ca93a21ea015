@@ -1,0 +1,87 @@
+package xusage.carrier.launch.catering.mission;
+
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import xusage.carrier.launch.catering.surface.SearchOrder.Result;
+import xusage.xmission.surface.ProcunitException;
+
+public class SearchDriver implements xusage.carrier.launch.catering.surface.SearchDriver {
+	
+	private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(SearchDriver.class);
+
+	@Override
+	public List<Result> execute(Parameter parameter) throws ProcunitException {
+		// 执行方法返回值 
+		LOGGER.debug("parameter:" + parameter.toString());
+		Integer total  = driver.count(parameter);
+		List<Result>  result = new ArrayList<>();
+//		for(Result i : driver.searchDriver(parameter) ) {
+//			i.setTotal(total);
+//			result.add(i);
+//		}
+//		
+//		return  result;
+		List<SearchDriver.Result> list = driver.searchDriver(parameter);
+		List<String> codes = new ArrayList<String>();
+		for(int i = 0; i < list.size(); i++) {
+			Result re = list.get(i);
+			re.setTotal(total);
+			codes.add(re.getPremise_area());
+			
+		}
+		Map<String,List<String>> addressMap = new HashMap<String,List<String>>();
+		List<Map<String,String>> addressList = address.searchAddressByCode(codes, null);
+		for(int i = 0; i < addressList.size(); i++) {
+			Map<String,String> map = addressList.get(i);
+			String code = map.get("code");
+			String fullname = map.get("fullname");
+			List<String> nameList = new ArrayList<String>(3);
+			String[] arr = fullname.split(",");
+			for (int j = 0; j < 3; j++) {
+				if(arr.length>=(j+1)) {
+					nameList.add(arr[j]);			
+				}else {
+					nameList.add(null);
+				}
+			}
+			addressMap.put(code, nameList);
+		}
+		for(int i = 0; i < list.size(); i++) {
+			Result re = list.get(i);
+			re.setStart(addressMap.get(re.getPremise_area()));
+		}
+		return  list;
+		
+	}
+	// ** xusage.xentity.surface.CreateIntactByObject createIntactByObject
+	private xusage.mysql.mybatis.surface.Driver driver;
+
+	public xusage.mysql.mybatis.surface.Driver getDriver() {
+		return driver;
+	}
+	public void setDriver(xusage.mysql.mybatis.surface.Driver driver) {
+		this.driver = driver;
+	}
+	private xusage.mysql.mybatis.surface.Address address;
+
+	public xusage.mysql.mybatis.surface.Address getAddress() {
+		return address;
+	}
+	public void setAddress(xusage.mysql.mybatis.surface.Address address) {
+		this.address = address;
+	}	
+	
+}

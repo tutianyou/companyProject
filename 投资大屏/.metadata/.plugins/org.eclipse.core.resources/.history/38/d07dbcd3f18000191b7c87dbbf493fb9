@@ -1,0 +1,1794 @@
+package com.dataviz.xusage.controller;
+
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.dataviz.xusage.entity.Address;
+import com.dataviz.xusage.entity.Clients;
+import com.dataviz.xusage.service.AddressService;
+import com.dataviz.xusage.service.ClientsService;
+import com.dataviz.xusage.service.DatavizFieldService;
+import com.dataviz.xusage.service.DatavizService;
+import com.dataviz.xusage.service.PartnersService;
+import com.dataviz.xusage.utils.GetLast12MonthsUtil;
+import com.dataviz.xusage.utils.GetUniquid;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@RestController
+@RequestMapping(value="/clients")
+public class ClientsController {
+
+	@Autowired
+	private ClientsService clientsService;
+	
+	@Autowired
+	private AddressService addressService;
+
+	@Autowired
+	private DatavizService datavizService;
+	
+	@Autowired
+	private PartnersService partnersService;
+	
+	@Autowired
+	private DatavizFieldService datavizFieldService;
+	
+	//累计客户数
+	@RequestMapping(value="/findClientsTotal.json")
+	public String findClientsTotal() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "clientsTotal";
+		Integer total = 0;
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//统计全国的
+		total = clientsService.findClientsTotal(null,null);
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "累计客户");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "累计客户,全国数据";
+		Integer count = datavizService.countDatavizByField(field, ":code", null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//统计所有省的
+		//获取所有省级编码
+		ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			total = clientsService.findClientsTotal(provinceCode,"province");
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "累计客户");
+			content_map_province.put("value", total);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address_province = addressService.findAddressByCode(provinceCode);
+			String comment_province = "累计客户,地区为"+address_province.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field, provinceCode, null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+		}
+		
+		//统计所有市的
+		//获取所有市级编码
+		ArrayList<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			total = clientsService.findClientsTotal(cityCode,"city");
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "累计客户");
+			content_map_city.put("value", total);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address_city = addressService.findAddressByCode(cityCode);
+			String comment_city = "累计客户,地区为"+address_city.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field, cityCode, null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//本月新增客户数
+	@RequestMapping(value="/findThisMonthNewlyIncreasedClients.json")
+	public String findThisMonthNewlyIncreasedClients() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "thisMonthNewlyIncreasedClients";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//统计全国的
+		total = clientsService.findThisMonthNewlyIncreasedClients(null,null);
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "本月新增客户");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "本月新增客户数,全国数据";
+		Integer count = datavizService.countDatavizByField(field, ":code", null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//统计所有省的
+		//获取所有省级编码
+		ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			total = clientsService.findThisMonthNewlyIncreasedClients(provinceCode,"province");
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "本月新增客户");
+			content_map_province.put("value", total);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address_province = addressService.findAddressByCode(provinceCode);
+			String comment_province = "本月新增客户数,地区为"+address_province.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field, provinceCode, null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+		}
+		
+		//统计所有市的
+		//获取所有市级编码
+		ArrayList<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			total = clientsService.findThisMonthNewlyIncreasedClients(cityCode,"city");
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "本月新增客户");
+			content_map_city.put("value", total);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address_city = addressService.findAddressByCode(cityCode);
+			String comment_city = "本月新增客户数,地区为"+address_city.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field, cityCode, null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//活跃客户数
+	@RequestMapping(value = "/findActiveClientsTotal.json")
+	public String findActiveClientsTotal() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "activeClientsTotal";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//统计全国的
+		total = clientsService.findActiveClientsTotal(null,null);
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "活跃客户");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "活跃客户数,全国数据";
+		Integer count = datavizService.countDatavizByField(field, ":code", null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//统计所有省的
+		//获取所有省级编码
+		ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			total = clientsService.findActiveClientsTotal(provinceCode,"province");
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "活跃客户");
+			content_map_province.put("value", total);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address_province = addressService.findAddressByCode(provinceCode);
+			String comment_province = "活跃客户数,地区为"+address_province.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field, provinceCode, null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+		}
+		
+		//统计所有市的
+		//获取所有市级编码
+		ArrayList<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			total = clientsService.findActiveClientsTotal(cityCode,"city");
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "活跃客户");
+			content_map_city.put("value", total);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address_city = addressService.findAddressByCode(cityCode);
+			String comment_city = "活跃客户数,地区为"+address_city.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field, cityCode, null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+		
+	}
+	
+	//近12月客户增长
+	@RequestMapping(value = "/findClientsIncreaseByMonth.json")
+	public String findClientsIncreaseByMonth() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "clientsIncreaseTotal";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		List<String> list = GetLast12MonthsUtil.getLast12Months(12);
+		for (Iterator<String> iterator = list.iterator(); iterator.hasNext();) {
+			String month = (String) iterator.next();
+			
+			Integer total = 0;
+			//统计的全国
+			total = clientsService.findClientsIncreaseByMonth(null,null,month);
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("month", month);
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("x", month);
+			content_map_all.put("y", total);
+			content_map_all.put("s", 1);
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = "统计平台上月份为"+month+"的客户增长数,全国数据";
+			
+			Integer count = datavizService.countDatavizByField(field,":code",month, null,null);
+			if(count > 0){
+				datavizService.updateDataviz(field, ":code", month, null, content_all,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+			
+			//统计的所有省份的
+			ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+			for (Iterator<String> iterator2 = provinceCodes.iterator(); iterator2.hasNext();) {
+				String provinceCode = (String) iterator2.next();
+				total = clientsService.findClientsIncreaseByMonth(provinceCode,"province",month);
+				String uniquid_province = GetUniquid.build();
+				Map<String,Object> filter_map_province = new HashMap<String,Object>();
+				filter_map_province.put("area", provinceCode);
+				filter_map_province.put("month", month);
+				String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+				Map<String,Object> content_map_province = new HashMap<String,Object>();
+				content_map_province.put("x", month);
+				content_map_province.put("y", total);
+				content_map_province.put("s", 1);
+				String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+				Address address_province = addressService.findAddressByCode(provinceCode);
+				String comment_province = "统计平台上月份为"+month+"的客户增长数,地区为"+address_province.getName()+"的数据";
+				
+				Integer count_province = datavizService.countDatavizByField(field,provinceCode,month, null,null);
+				if(count_province > 0){
+					datavizService.updateDataviz(field, provinceCode, month, null, content_province,null);
+				}else{
+					datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+				}
+			}
+			
+			//统计所有市的
+			ArrayList<String> cityCodes = addressService.findCityCodeAll();
+			for (Iterator<String> iterator2 = cityCodes.iterator(); iterator2.hasNext();) {
+				String cityCode = (String) iterator2.next();
+				total = clientsService.findClientsIncreaseByMonth(cityCode, "city", month);
+				String uniquid_city = GetUniquid.build();
+				Map<String,Object> filter_map_city = new HashMap<String,Object>();
+				filter_map_city.put("area", cityCode);
+				filter_map_city.put("month", month);
+				String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+				Map<String,Object> content_map_city = new HashMap<String,Object>();
+				content_map_city.put("x", month);
+				content_map_city.put("y", total);
+				content_map_city.put("s", 1);
+				String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+				Address address_city = addressService.findAddressByCode(cityCode);
+				String comment_city = "统计平台上月份为"+month+"的客户增长数,地区为"+address_city.getName()+"的数据";
+				
+				Integer count_city = datavizService.countDatavizByField(field,cityCode,month, null,null);
+				if(count_city > 0){
+					datavizService.updateDataviz(field, cityCode, month, null, content_city,null);
+				}else{
+					datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+				}
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//今日订单量
+	@RequestMapping(value = "/todayOrderTatal.json")
+	public String todayOrderTatal() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "todayOrderTatal";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//全国数据
+		total = clientsService.todayOrderTatal(null,null,null);
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "今日订单");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "今日订单,全国数据";
+		Integer count = datavizService.countDatavizByField(field,":code",null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//所有省的数据
+		ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			total = clientsService.todayOrderTatal(provinceCode,"province",null);
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "今日订单");
+			content_map_province.put("value", total);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address = addressService.findAddressByCode(provinceCode);
+			String comment_province = "今日订单,地区为"+address.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field,provinceCode,null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+			
+		}
+		
+		//所有市的数据
+		ArrayList<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			total = clientsService.todayOrderTatal(cityCode,"city",null);
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "今日订单");
+			content_map_city.put("value", total);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address = addressService.findAddressByCode(cityCode);
+			String comment_city = "今日订单,地区为"+address.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field,cityCode,null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//本月订单量
+	@RequestMapping(value = "/thisMonthOrderTatal.json")
+	public String thisMonthOrderTatal() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "thisMonthOrderTatal";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//全国数据
+		total = clientsService.thisMonthOrderTatal(null,null,null);
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "本月订单");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "本月订单,全国数据";
+		Integer count = datavizService.countDatavizByField(field,":code",null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//所有省的数据
+		ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			total = clientsService.thisMonthOrderTatal(provinceCode,"province",null);
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "本月订单");
+			content_map_province.put("value", total);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address = addressService.findAddressByCode(provinceCode);
+			String comment_province = "本月订单,地区为"+address.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field,provinceCode,null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+			
+		}
+		
+		//所有市的数据
+		ArrayList<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			total = clientsService.thisMonthOrderTatal(cityCode,"city",null);
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "本月订单");
+			content_map_city.put("value", total);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address = addressService.findAddressByCode(cityCode);
+			String comment_city = "本月订单,地区为"+address.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field,cityCode,null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//累计订单量
+	@RequestMapping(value = "/accumulativeOrderTatal.json")
+	public String accumulativeOrderTatal() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "accumulativeOrderTatal";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//全国数据
+		total = clientsService.accumulativeOrderTatal(null,null,null);
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "累计订单");
+		content_map_all.put("value", total);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "累计订单,全国数据";
+		Integer count = datavizService.countDatavizByField(field,":code",null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//所有省的数据
+		ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			total = clientsService.accumulativeOrderTatal(provinceCode,"province",null);
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "累计订单");
+			content_map_province.put("value", total);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address = addressService.findAddressByCode(provinceCode);
+			String comment_province = "累计订单,地区为"+address.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field,provinceCode,null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+		}
+		
+		//所有市的数据
+		ArrayList<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			total = clientsService.accumulativeOrderTatal(cityCode,"city",null);
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "累计订单");
+			content_map_city.put("value", total);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address = addressService.findAddressByCode(cityCode);
+			String comment_city = "累计订单,地区为"+address.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field,cityCode,null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//近12月订单增长（曲线图）
+	@RequestMapping(value = "/findOrdersIncreaseByMonth.json")
+	public String findOrdersIncreaseByMonth() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "ordersIncreaseByMonth";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		Integer total = 0;
+		List<String> list = GetLast12MonthsUtil.getLast12Months(12);
+		for (Iterator<String> iterator = list.iterator(); iterator.hasNext();) {
+			String month = (String)iterator.next();
+			
+			//全国数据
+			total = clientsService.findOrdersIncreaseByMonth(null,null,month,null);
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("month", month);
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("x", month);
+			content_map_all.put("y", total);
+			content_map_all.put("s", 1);
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = month+"月订单增长数,全国数据";
+			Integer count = datavizService.countDatavizByField(field,":code",month, null,null);
+			if(count > 0){
+				datavizService.updateDataviz(field, ":code", month, null, content_all,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+			
+			//所有省数据
+			ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+			for (Iterator<String> iterator2 = provinceCodes.iterator(); iterator2.hasNext();) {
+				String provinceCode = (String) iterator2.next();
+				total = clientsService.findOrdersIncreaseByMonth(provinceCode,"province",month,null);
+				String uniquid_province = GetUniquid.build();
+				Map<String,Object> filter_map_province = new HashMap<String,Object>();
+				filter_map_province.put("area", provinceCode);
+				filter_map_province.put("month", month);
+				String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+				Map<String,Object> content_map_province = new HashMap<String,Object>();
+				content_map_province.put("x", month);
+				content_map_province.put("y", total);
+				content_map_province.put("s", 1);
+				String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+				Address address = addressService.findAddressByCode(provinceCode);
+				String comment_province = month+"月订单增长数,地区为"+address.getName()+"的数据";
+				Integer count_province = datavizService.countDatavizByField(field,provinceCode,month, null,null);
+				if(count_province > 0){
+					datavizService.updateDataviz(field, provinceCode, month, null, content_province,null);
+				}else{
+					datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+				}
+			}
+			
+			//所有市数据
+			ArrayList<String> cityCodes = addressService.findCityCodeAll();
+			for (Iterator<String> iterator2 = cityCodes.iterator(); iterator2.hasNext();) {
+				String cityCode = (String) iterator2.next();
+				total = clientsService.findOrdersIncreaseByMonth(cityCode,"city",month,null);
+				String uniquid_city = GetUniquid.build();
+				Map<String,Object> filter_map_city = new HashMap<String,Object>();
+				filter_map_city.put("area", cityCode);
+				filter_map_city.put("month", month);
+				String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+				Map<String,Object> content_map_city = new HashMap<String,Object>();
+				content_map_city.put("x", month);
+				content_map_city.put("y", total);
+				content_map_city.put("s", 1);
+				String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+				Address address = addressService.findAddressByCode(cityCode);
+				String comment_city = month+"月订单增长数,地区为"+address.getName()+"的数据";
+				Integer count_city = datavizService.countDatavizByField(field,cityCode,month, null,null);
+				if(count_city > 0){
+					datavizService.updateDataviz(field, cityCode, month, null, content_city,null);
+				}else{
+					datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+				}
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//客户交易排行top5（排名）
+	@RequestMapping(value = "/clientTransactionAmount.json")
+	public String clientTransactionAmount() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "clientTransactionAmount";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//全国数据
+		List<Clients> list = clientsService.clientTransactionAmount(null,null);
+		for (Iterator<Clients> iterator = list.iterator(); iterator.hasNext();) {
+			Clients clients = (Clients) iterator.next();
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("id", clients.getId());
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("value", clients.getTransactionAmount());
+			content_map_all.put("content", clients.getName());
+			
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = "客户交易金额,全国数据";
+			Integer count = datavizService.countDatavizByField(field,":code",null, null,clients.getId());
+			if(count > 0){
+				datavizService.updateDataviz(field, ":code", null, null, content_all,clients.getId());
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+		}
+		
+		//所有省数据
+		ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator2 = provinceCodes.iterator(); iterator2.hasNext();) {
+			String provinceCode = (String) iterator2.next();
+			
+			List<Clients> list_province = clientsService.clientTransactionAmount(provinceCode,"province");
+			for (Iterator<Clients> iterator = list_province.iterator(); iterator.hasNext();) {
+				Clients clients = (Clients) iterator.next();
+				String uniquid_province = GetUniquid.build();
+				Map<String,Object> filter_map_province = new HashMap<String,Object>();
+				filter_map_province.put("area", provinceCode);
+				filter_map_province.put("id", clients.getId());
+				String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+				Map<String,Object> content_map_province = new HashMap<String,Object>();
+				content_map_province.put("value", clients.getTransactionAmount());
+				content_map_province.put("content", clients.getName());
+				String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+				Address address = addressService.findAddressByCode(provinceCode);
+				String comment_province = "客户交易金额,地区为"+address.getName()+"的数据";
+				Integer count_province = datavizService.countDatavizByField(field,provinceCode,null, null,clients.getId());
+				if(count_province > 0){
+					datavizService.updateDataviz(field, provinceCode, null, null, content_province,clients.getId());
+				}else{
+					datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+				}
+			}
+		}
+		
+		
+		//所有市数据
+		ArrayList<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator2 = cityCodes.iterator(); iterator2.hasNext();) {
+			String cityCode = (String) iterator2.next();
+			
+			List<Clients> list_city = clientsService.clientTransactionAmount(cityCode,"city");
+			for (Iterator<Clients> iterator = list_city.iterator(); iterator.hasNext();) {
+				Clients clients = (Clients) iterator.next();
+				String uniquid_city = GetUniquid.build();
+				Map<String,Object> filter_map_city = new HashMap<String,Object>();
+				filter_map_city.put("area", cityCode);
+				filter_map_city.put("id", clients.getId());
+				String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+				Map<String,Object> content_map_city = new HashMap<String,Object>();
+				content_map_city.put("value", clients.getTransactionAmount());
+				content_map_city.put("content", clients.getName());
+				String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+				Address address = addressService.findAddressByCode(cityCode);
+				String comment_city = "客户交易金额,地区为"+address.getName()+"的数据";
+				Integer count_city = datavizService.countDatavizByField(field,cityCode,null, null,clients.getId());
+				if(count_city > 0){
+					datavizService.updateDataviz(field, cityCode, null, null, content_city,clients.getId());
+				}else{
+					datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+				}
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//近12月全国交易额（曲线图）
+	@RequestMapping(value = "/findTransactionAmountByMonth.json")
+	public String findTransactionAmountByMonth() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "transactionAmountByMonth";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		Double amount = 0.00;
+		List<String> list = GetLast12MonthsUtil.getLast12Months(12);
+		for (Iterator<String> iterator = list.iterator(); iterator.hasNext();) {
+			String month = (String) iterator.next();
+			//全国数据
+			//发生交易额
+			amount = clientsService.findHappenTransactionAmountByMonth(null,null,month,null);
+			if(amount == null){
+				amount = 0.00;
+			}
+			String uniquid_all_happen = GetUniquid.build();
+			Map<String,Object> filter_map_all_happen = new HashMap<String,Object>();
+			filter_map_all_happen.put("area", ":code");
+			filter_map_all_happen.put("month", month);
+			filter_map_all_happen.put("type", "1");
+			String filter_all_happen = jacksonObjectMapper.writeValueAsString(filter_map_all_happen);
+			Map<String,Object> content_map_all_happen = new HashMap<String,Object>();
+			content_map_all_happen.put("x", month);
+			content_map_all_happen.put("y", amount);
+			content_map_all_happen.put("s", "1");
+			String content_all_happen = jacksonObjectMapper.writeValueAsString(content_map_all_happen);
+			String comment_all_happen = month+"月发生交易额,全国数据";
+			Integer count_happen = datavizService.countDatavizByField(field,":code",month, "1",null);
+			if(count_happen > 0){
+				datavizService.updateDataviz(field, ":code", month, "1", content_all_happen,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all_happen,field,filter_all_happen,content_all_happen,comment_all_happen);
+			}
+			
+			//成交交易额
+			amount = clientsService.findCompleteTransactionAmountByMonth(null,null,month,null);
+			if(amount == null){
+				amount = 0.00;
+			}
+			String uniquid_all_complete = GetUniquid.build();
+			Map<String,Object> filter_map_all_complete = new HashMap<String,Object>();
+			filter_map_all_complete.put("area", ":code");
+			filter_map_all_complete.put("month", month);
+			filter_map_all_complete.put("type", "2");
+			String filter_all_complete = jacksonObjectMapper.writeValueAsString(filter_map_all_complete);
+			Map<String,Object> content_map_all_complete = new HashMap<String,Object>();
+			content_map_all_complete.put("x", month);
+			content_map_all_complete.put("y", amount);
+			content_map_all_complete.put("s", "2");
+			String content_all_complete = jacksonObjectMapper.writeValueAsString(content_map_all_complete);
+			String comment_all_complete = month+"月成交交易额,全国数据";
+			Integer count_complete = datavizService.countDatavizByField(field,":code",month, "2",null);
+			if(count_complete > 0){
+				datavizService.updateDataviz(field, ":code", month, "2", content_all_complete,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all_complete,field,filter_all_complete,content_all_complete,comment_all_complete);
+			}
+			
+			//回款金额
+//			amount = clientsService.findRefundleAmountByMonth(null,null,month,null);
+//			if(amount == null){
+//				amount = 0.00;
+//			}
+//			String uniquid_all_refund = GetUniquid.build();
+//			Map<String,Object> filter_map_all_refund = new HashMap<String,Object>();
+//			filter_map_all_refund.put("area", ":code");
+//			filter_map_all_refund.put("month", month);
+//			filter_map_all_refund.put("type", "3");
+//			String filter_all_refund = jacksonObjectMapper.writeValueAsString(filter_map_all_refund);
+//			Map<String,Object> content_map_all_refund = new HashMap<String,Object>();
+//			content_map_all_refund.put("x", month);
+//			content_map_all_refund.put("y", amount);
+//			content_map_all_refund.put("s", "3");
+//			String content_all_refund = jacksonObjectMapper.writeValueAsString(content_map_all_refund);
+//			String comment_all_refund = month+"月回款金额,全国数据";
+//			Integer count_refund = datavizService.countDatavizByField(field,":code",month, "3",null);
+//			if(count_refund > 0){
+//				datavizService.updateDataviz(field, ":code", month, "3", content_all_refund,null);
+//			}else{
+//				datavizService.saveDataviz(uniquid_all_refund,field,filter_all_refund,content_all_refund,comment_all_refund);
+//			}
+//			
+			//所有省数据
+			List<String> provinceCodes = addressService.findProvinceCodeAll();
+			for (Iterator<String> iterator2 = provinceCodes.iterator(); iterator2.hasNext();) {
+				String provinceCode = (String) iterator2.next();
+				Address address = addressService.findAddressByCode(provinceCode);
+				//发生交易额
+				amount = clientsService.findHappenTransactionAmountByMonth(provinceCode,"province",month,null);
+				if(amount == null){
+					amount = 0.00;
+				}
+				String uniquid_province_happen = GetUniquid.build();
+				Map<String,Object> filter_map_province_happen = new HashMap<String,Object>();
+				filter_map_province_happen.put("area", provinceCode);
+				filter_map_province_happen.put("month", month);
+				filter_map_province_happen.put("type", "1");
+				String filter_province_happen = jacksonObjectMapper.writeValueAsString(filter_map_province_happen);
+				Map<String,Object> content_map_province_happen = new HashMap<String,Object>();
+				content_map_province_happen.put("x", month);
+				content_map_province_happen.put("y", amount);
+				content_map_province_happen.put("s", "1");
+				String content_province_happen = jacksonObjectMapper.writeValueAsString(content_map_province_happen);
+				String comment_province_happen = month+"月发生交易额,地区为"+address.getName()+"的数据";
+				Integer count_province_happen = datavizService.countDatavizByField(field,provinceCode,month, "1",null);
+				if(count_province_happen > 0){
+					datavizService.updateDataviz(field, provinceCode, month, "1", content_province_happen,null);
+				}else{
+					datavizService.saveDataviz(uniquid_province_happen,field,filter_province_happen,content_province_happen,comment_province_happen);
+				}
+				
+				//成交交易额
+				amount = clientsService.findCompleteTransactionAmountByMonth(provinceCode,"province",month,null);
+				if(amount == null){
+					amount = 0.00;
+				}
+				String uniquid_province_complete = GetUniquid.build();
+				Map<String,Object> filter_map_province_complete = new HashMap<String,Object>();
+				filter_map_province_complete.put("area", provinceCode);
+				filter_map_province_complete.put("month", month);
+				filter_map_province_complete.put("type", "2");
+				String filter_province_complete = jacksonObjectMapper.writeValueAsString(filter_map_province_complete);
+				Map<String,Object> content_map_province_complete = new HashMap<String,Object>();
+				content_map_province_complete.put("x", month);
+				content_map_province_complete.put("y", amount);
+				content_map_province_complete.put("s", "2");
+				String content_province_complete = jacksonObjectMapper.writeValueAsString(content_map_province_complete);
+				String comment_province_complete = month+"月成交交易额,地区为"+address.getName()+"的数据";
+				Integer count_province_complete = datavizService.countDatavizByField(field,provinceCode,month, "2",null);
+				if(count_province_complete > 0){
+					datavizService.updateDataviz(field, provinceCode, month, "2", content_province_complete,null);
+				}else{
+					datavizService.saveDataviz(uniquid_province_complete,field,filter_province_complete,content_province_complete,comment_province_complete);
+				}
+				
+				//回款金额
+//				amount = clientsService.findRefundleAmountByMonth(provinceCode,"province",month,null);
+//				if(amount == null){
+//					amount = 0.00;
+//				}
+//				String uniquid_province_refund = GetUniquid.build();
+//				Map<String,Object> filter_map_province_refund = new HashMap<String,Object>();
+//				filter_map_province_refund.put("area", provinceCode);
+//				filter_map_province_refund.put("month", month);
+//				filter_map_province_refund.put("type", "3");
+//				String filter_province_refund = jacksonObjectMapper.writeValueAsString(filter_map_province_refund);
+//				Map<String,Object> content_map_province_refund = new HashMap<String,Object>();
+//				content_map_province_refund.put("x", month);
+//				content_map_province_refund.put("y", amount);
+//				content_map_province_refund.put("s", "3");
+//				String content_province_refund = jacksonObjectMapper.writeValueAsString(content_map_province_refund);
+//				String comment_province_refund = month+"月回款金额,地区为"+address.getName()+"的数据";
+//				Integer coun_provincet_refund = datavizService.countDatavizByField(field,provinceCode,month, "3",null);
+//				if(coun_provincet_refund > 0){
+//					datavizService.updateDataviz(field, provinceCode, month, "3", content_province_refund,null);
+//				}else{
+//					datavizService.saveDataviz(uniquid_province_refund,field,filter_province_refund,content_province_refund,comment_province_refund);
+//				}
+			}
+			
+			//所有市数据
+			List<String> cityCodes = addressService.findCityCodeAll();
+			for (Iterator<String> iterator2 = cityCodes.iterator(); iterator2.hasNext();) {
+				String cityCode = (String) iterator2.next();
+				Address address = addressService.findAddressByCode(cityCode);
+				//发生交易额
+				amount = clientsService.findHappenTransactionAmountByMonth(cityCode,"city",month,null);
+				if(amount == null){
+					amount = 0.00;
+				}
+				String uniquid_city_happen = GetUniquid.build();
+				Map<String,Object> filter_map_city_happen = new HashMap<String,Object>();
+				filter_map_city_happen.put("area", cityCode);
+				filter_map_city_happen.put("month", month);
+				filter_map_city_happen.put("type", "1");
+				String filter_city_happen = jacksonObjectMapper.writeValueAsString(filter_map_city_happen);
+				Map<String,Object> content_map_city_happen = new HashMap<String,Object>();
+				content_map_city_happen.put("x", month);
+				content_map_city_happen.put("y", amount);
+				content_map_city_happen.put("s", "1");
+				String content_city_happen = jacksonObjectMapper.writeValueAsString(content_map_city_happen);
+				String comment_city_happen = month+"月发生交易额,地区为"+address.getName()+"的数据";
+				Integer count_city_happen = datavizService.countDatavizByField(field,cityCode,month, "1",null);
+				if(count_city_happen > 0){
+					datavizService.updateDataviz(field, cityCode, month, "1", content_city_happen,null);
+				}else{
+					datavizService.saveDataviz(uniquid_city_happen,field,filter_city_happen,content_city_happen,comment_city_happen);
+				}
+				
+				//成交交易额
+				amount = clientsService.findCompleteTransactionAmountByMonth(cityCode,"city",month,null);
+				if(amount == null){
+					amount = 0.00;
+				}
+				String uniquid_city_complete = GetUniquid.build();
+				Map<String,Object> filter_map_city_complete = new HashMap<String,Object>();
+				filter_map_city_complete.put("area", cityCode);
+				filter_map_city_complete.put("month", month);
+				filter_map_city_complete.put("type", "2");
+				String filter_city_complete = jacksonObjectMapper.writeValueAsString(filter_map_city_complete);
+				Map<String,Object> content_map_city_complete = new HashMap<String,Object>();
+				content_map_city_complete.put("x", month);
+				content_map_city_complete.put("y", amount);
+				content_map_city_complete.put("s", "2");
+				String content_city_complete = jacksonObjectMapper.writeValueAsString(content_map_city_complete);
+				String comment_city_complete = month+"月成交交易额,地区为"+address.getName()+"的数据";
+				Integer count_city_complete = datavizService.countDatavizByField(field,cityCode,month, "2",null);
+				if(count_city_complete > 0){
+					datavizService.updateDataviz(field, cityCode, month, "2", content_city_complete,null);
+				}else{
+					datavizService.saveDataviz(uniquid_city_complete,field,filter_city_complete,content_city_complete,comment_city_complete);
+				}
+				
+				//回款金额
+//				amount = clientsService.findRefundleAmountByMonth(cityCode,"city",month,null);
+//				if(amount == null){
+//					amount = 0.00;
+//				}
+//				String uniquid_city_refund = GetUniquid.build();
+//				Map<String,Object> filter_map_city_refund = new HashMap<String,Object>();
+//				filter_map_city_refund.put("area", cityCode);
+//				filter_map_city_refund.put("month", month);
+//				filter_map_city_refund.put("type", "3");
+//				String filter_city_refund = jacksonObjectMapper.writeValueAsString(filter_map_city_refund);
+//				Map<String,Object> content_map_city_refund = new HashMap<String,Object>();
+//				content_map_city_refund.put("x", month);
+//				content_map_city_refund.put("y", amount);
+//				content_map_city_refund.put("s", "3");
+//				String content_city_refund = jacksonObjectMapper.writeValueAsString(content_map_city_refund);
+//				String comment_city_refund = month+"月回款金额,地区为"+address.getName()+"的数据";
+//				Integer coun_cityt_refund = datavizService.countDatavizByField(field,cityCode,month, "3",null);
+//				if(coun_cityt_refund > 0){
+//					datavizService.updateDataviz(field, cityCode, month, "3", content_city_refund,null);
+//				}else{
+//					datavizService.saveDataviz(uniquid_city_refund,field,filter_city_refund,content_city_refund,comment_city_refund);
+//				}
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//本月发生交易额
+	@RequestMapping(value = "/thisMonthHappenTransactionAmount.json")
+	public String thisMonthHappenTransactionAmount() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "thisMonthHappenTransactionAmount";
+		Double amount = 0.00;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//全国
+		amount = clientsService.thisMonthHappenTransactionAmount(null,null,null);
+		if(amount == null){
+			amount = 0.00; 
+		}
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "本月发生交易额");
+		content_map_all.put("value", amount);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "本月发生交易额,全国数据";
+		Integer count = datavizService.countDatavizByField(field,":code",null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//所有省
+		List<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			amount = clientsService.thisMonthHappenTransactionAmount(provinceCode,"province",null);
+			if(amount == null){
+				amount = 0.00; 
+			}
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "本月发生交易额");
+			content_map_province.put("value", amount);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address = addressService.findAddressByCode(provinceCode);
+			String comment_province = "本月发生交易额,地区为"+address.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field,provinceCode,null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+		}
+		
+		//所有市
+		List<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			amount = clientsService.thisMonthHappenTransactionAmount(cityCode,"city",null);
+			if(amount == null){
+				amount = 0.00; 
+			}
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "本月发生交易额");
+			content_map_city.put("value", amount);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address = addressService.findAddressByCode(cityCode);
+			String comment_city = "本月发生交易额,地区为"+address.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field,cityCode,null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	
+	//本月完成交易额
+	@RequestMapping(value = "/thisMonthCompleteTransactionAmount.json")
+	public String thisMonthCompleteTransactionAmount() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "thisMonthCompleteTransactionAmount";
+		Double amount = 0.00;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//全国
+		amount = clientsService.thisMonthCompleteTransactionAmount(null,null,null);
+		if(amount == null){
+			amount = 0.00; 
+		}
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "本月完成交易额");
+		content_map_all.put("value", amount);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "本月完成交易额,全国数据";
+		Integer count = datavizService.countDatavizByField(field,":code",null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//所有省
+		List<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			amount = clientsService.thisMonthCompleteTransactionAmount(provinceCode,"province",null);
+			if(amount == null){
+				amount = 0.00; 
+			}
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "本月完成交易额");
+			content_map_province.put("value", amount);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address = addressService.findAddressByCode(provinceCode);
+			String comment_province = "本月完成交易额,地区为"+address.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field,provinceCode,null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+		}
+		
+		//所有市
+		List<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			amount = clientsService.thisMonthCompleteTransactionAmount(cityCode,"city",null);
+			if(amount == null){
+				amount = 0.00; 
+			}
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "本月完成交易额");
+			content_map_city.put("value", amount);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address = addressService.findAddressByCode(cityCode);
+			String comment_city = "本月完成交易额,地区为"+address.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field,cityCode,null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//累计交易额
+	@RequestMapping(value = "/accumulativeTransactionAmount.json")
+	public String accumulativeTransactionAmount() throws Exception{
+	
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "accumulativeTransactionAmount";
+		Double amount = 0.00;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//全国
+		amount = clientsService.accumulativeTransactionAmount(null,null,null);
+		if(amount == null){
+			amount = 0.00; 
+		}
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "累计交易额");
+		content_map_all.put("value", amount);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "累计交易额,全国数据";
+		Integer count = datavizService.countDatavizByField(field,":code",null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//所有省
+		List<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			amount = clientsService.accumulativeTransactionAmount(provinceCode,"province",null);
+			if(amount == null){
+				amount = 0.00; 
+			}
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "累计交易额");
+			content_map_province.put("value", amount);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address = addressService.findAddressByCode(provinceCode);
+			String comment_province = "累计交易额,地区为"+address.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field,provinceCode,null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+		}
+		
+		//所有市
+		List<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			amount = clientsService.accumulativeTransactionAmount(cityCode,"city",null);
+			if(amount == null){
+				amount = 0.00; 
+			}
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "累计交易额");
+			content_map_city.put("value", amount);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address = addressService.findAddressByCode(cityCode);
+			String comment_city = "累计交易额,地区为"+address.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field,cityCode,null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//累计完成交易额
+	@RequestMapping(value = "/accumulativeCompleteTransactionAmount.json")
+	public String accumulativeCompleteTransactionAmount() throws Exception{
+	
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "accumulativeCompleteTransactionAmount";
+		Double amount = 0.00;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//全国
+		amount = clientsService.accumulativeCompleteTransactionAmount(null,null,null);
+		if(amount == null){
+			amount = 0.00; 
+		}
+		String uniquid_all = GetUniquid.build();
+		Map<String,Object> filter_map_all = new HashMap<String,Object>();
+		filter_map_all.put("area", ":code");
+		String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+		Map<String,Object> content_map_all = new HashMap<String,Object>();
+		content_map_all.put("name", "累计完成交易额");
+		content_map_all.put("value", amount);
+		String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+		String comment_all = "累计完成交易额,全国数据";
+		Integer count = datavizService.countDatavizByField(field,":code",null, null,null);
+		if(count > 0){
+			datavizService.updateDataviz(field, ":code", null, null, content_all,null);
+		}else{
+			datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+		}
+		
+		//所有省
+		List<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			amount = clientsService.accumulativeCompleteTransactionAmount(provinceCode,"province",null);
+			if(amount == null){
+				amount = 0.00; 
+			}
+			String uniquid_province = GetUniquid.build();
+			Map<String,Object> filter_map_province = new HashMap<String,Object>();
+			filter_map_province.put("area", provinceCode);
+			String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+			Map<String,Object> content_map_province = new HashMap<String,Object>();
+			content_map_province.put("name", "累计完成交易额");
+			content_map_province.put("value", amount);
+			String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+			Address address = addressService.findAddressByCode(provinceCode);
+			String comment_province = "累计完成交易额,地区为"+address.getName()+"的数据";
+			Integer count_province = datavizService.countDatavizByField(field,provinceCode,null, null,null);
+			if(count_province > 0){
+				datavizService.updateDataviz(field, provinceCode, null, null, content_province,null);
+			}else{
+				datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+			}
+		}
+		
+		//所有市
+		List<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			amount = clientsService.accumulativeCompleteTransactionAmount(cityCode,"city",null);
+			if(amount == null){
+				amount = 0.00; 
+			}
+			String uniquid_city = GetUniquid.build();
+			Map<String,Object> filter_map_city = new HashMap<String,Object>();
+			filter_map_city.put("area", cityCode);
+			String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+			Map<String,Object> content_map_city = new HashMap<String,Object>();
+			content_map_city.put("name", "累计完成交易额");
+			content_map_city.put("value", amount);
+			String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+			Address address = addressService.findAddressByCode(cityCode);
+			String comment_city = "累计完成交易额,地区为"+address.getName()+"的数据";
+			Integer count_city = datavizService.countDatavizByField(field,cityCode,null, null,null);
+			if(count_city > 0){
+				datavizService.updateDataviz(field, cityCode, null, null, content_city,null);
+			}else{
+				datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//客户类型分布（饼图）
+	@RequestMapping(value = "/clientsTypeDistribute.json")
+	public String clientsTypeDistribute() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "clientsTypeDistribute";
+		Integer total = 0;
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//查询所有客户类型
+		List<String> list = clientsService.findClientsType();
+		for (Iterator<String> iterator = list.iterator(); iterator.hasNext();) {
+			String type = (String) iterator.next();
+			//全国数据
+			total = clientsService.countClientsDistribute(null, null,type);
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("type", type);
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("x", type);
+			content_map_all.put("y", total);
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = "客户类型为"+type+"的,全国数据";
+			Integer count = datavizService.countDatavizByField(field, ":code", null, type,null);
+			if(count>0){
+				datavizService.updateDataviz(field, ":code", null, type, content_all,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+			
+			//统计所有省数据
+			//获取所有省级编码
+			ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+			for (Iterator<String> iterator2 = provinceCodes.iterator(); iterator2.hasNext();) {
+				String provinceCode = (String) iterator2.next();
+				total = clientsService.countClientsDistribute(provinceCode, "province",type);
+				String uniquid_province = GetUniquid.build();
+				Map<String,Object> filter_map_province = new HashMap<String,Object>();
+				filter_map_province.put("area", provinceCode);
+				filter_map_province.put("type", type);
+				String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+				Map<String,Object> content_map_province = new HashMap<String,Object>();
+				content_map_province.put("x", type);
+				content_map_province.put("y", total);
+				String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+				Address address = addressService.findAddressByCode(provinceCode);
+				String comment_province = "合伙人类型为"+type+"的,地区为"+address.getName()+"的数据";
+				Integer count_province = datavizService.countDatavizByField(field, provinceCode, null, type,null);
+				if(count_province>0){
+					datavizService.updateDataviz(field, provinceCode, null, type, content_province,null);
+				}else{
+					datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+				}
+			}
+			
+			//统计所有市数据
+			//获取所有市级编码
+			ArrayList<String> cityCodes = addressService.findCityCodeAll();
+			for (Iterator<String> iterator2 = cityCodes.iterator(); iterator2.hasNext();) {
+				String cityCode = (String) iterator2.next();
+				total = clientsService.countClientsDistribute(cityCode, "city",type);
+				String uniquid_city = GetUniquid.build();
+				Map<String,Object> filter_map_city = new HashMap<String,Object>();
+				filter_map_city.put("area", cityCode);
+				filter_map_city.put("type", type);
+				String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+				Map<String,Object> content_map_city = new HashMap<String,Object>();
+				content_map_city.put("x", type);
+				content_map_city.put("y", total);
+				String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+				Address address = addressService.findAddressByCode(cityCode);
+				String comment_city = "合伙人类型为"+type+"的,地区为"+address.getName()+"的数据";
+				Integer count_city = datavizService.countDatavizByField(field, cityCode, null, type,null);
+				if(count_city>0){
+					datavizService.updateDataviz(field, cityCode, null, type, content_city,null);
+				}else{
+					datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+				}
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//货物类型分布（占比图）
+	@RequestMapping(value = "/cargoTypeDistribute.json")
+	public String cargoTypeDistribute() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "cargoTypeDistribute";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//全国数据
+		List<Clients> list = clientsService.findGoodsTypeCount(null, null, null);
+		for (Iterator<Clients> iterator = list.iterator(); iterator.hasNext();) {
+			Clients clients = (Clients) iterator.next();
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("type", clients.getType());
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("x", clients.getType());
+			content_map_all.put("y", clients.getCount());
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = "货物类型为"+clients.getType()+"的,全国数据";
+			Integer count = datavizService.countDatavizByField(field, ":code", null, clients.getType(),null);
+			if(count>0){
+				datavizService.updateDataviz(field, ":code", null, clients.getType(), content_all,null);
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+		}
+		
+		//全省的数据
+		List<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			Address address = addressService.findAddressByCode(provinceCode);
+			List<Clients> list_province = clientsService.findGoodsTypeCount(provinceCode, "province", null);
+			for (Iterator<Clients> iterator2 = list_province.iterator(); iterator2.hasNext();) {
+				Clients clients = (Clients) iterator2.next();
+				String uniquid_province = GetUniquid.build();
+				Map<String,Object> filter_map_province = new HashMap<String,Object>();
+				filter_map_province.put("area", provinceCode);
+				filter_map_province.put("type", clients.getType());
+				String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+				Map<String,Object> content_map_province = new HashMap<String,Object>();
+				content_map_province.put("x", clients.getType());
+				content_map_province.put("y", clients.getCount());
+				String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+				String comment_province = "货物类型为"+clients.getType()+"的,地区为"+address.getName()+"的数据";
+				Integer count = datavizService.countDatavizByField(field, provinceCode, null, clients.getType(),null);
+				if(count>0){
+					datavizService.updateDataviz(field, provinceCode, null, clients.getType(), content_province,null);
+				}else{
+					datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+				}
+			}
+		}
+		
+		//全市的数据
+		List<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			Address address = addressService.findAddressByCode(cityCode);
+			List<Clients> list_city = clientsService.findGoodsTypeCount(cityCode, "city", null);
+			for (Iterator<Clients> iterator2 = list_city.iterator(); iterator2.hasNext();) {
+				Clients clients = (Clients) iterator2.next();
+				String uniquid_city = GetUniquid.build();
+				Map<String,Object> filter_map_city = new HashMap<String,Object>();
+				filter_map_city.put("area", cityCode);
+				filter_map_city.put("type", clients.getType());
+				String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+				Map<String,Object> content_map_city = new HashMap<String,Object>();
+				content_map_city.put("x", clients.getType());
+				content_map_city.put("y", clients.getCount());
+				String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+				String comment_city = "货物类型为"+clients.getType()+"的,地区为"+address.getName()+"的数据";
+				Integer count = datavizService.countDatavizByField(field, cityCode, null, clients.getType(),null);
+				if(count>0){
+					datavizService.updateDataviz(field, cityCode, null, clients.getType(), content_city,null);
+				}else{
+					datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+				}
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	
+	
+	//客户位置分布（地图）
+	@RequestMapping(value = "/clientsLocationDistribute.json")
+	public String clientsLocationDistribute() throws Exception{
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String startTime = sdf.format(new Date());
+		ObjectMapper jacksonObjectMapper = new ObjectMapper();
+		String field = "clientsLocationDistribute";
+		
+		//修改当前统计的状态
+		datavizFieldService.updateDatavizFieldExetime(field, true, sdf.parse(startTime), null, "area");
+		
+		//统计全国
+		List<Clients> list = clientsService.clientsLocationDistribute(null,null);
+		for (Iterator<Clients> iterator = list.iterator(); iterator.hasNext();) {
+			Clients clients = (Clients) iterator.next();
+			String uniquid_all = GetUniquid.build();
+			Map<String,Object> filter_map_all = new HashMap<String,Object>();
+			filter_map_all.put("area", ":code");
+			filter_map_all.put("id", clients.getId());
+			String filter_all = jacksonObjectMapper.writeValueAsString(filter_map_all);
+			Map<String,Object> content_map_all = new HashMap<String,Object>();
+			content_map_all.put("dotid", clients.getId());
+			content_map_all.put("lat", clients.getLat());
+			content_map_all.put("lng", clients.getLon());
+			content_map_all.put("value", 8);
+			content_map_all.put("info", "<a href='javascript:location.reload();'>"+clients.getName()+"</a>");
+			content_map_all.put("type", "ok");
+			content_map_all.put("name", clients.getName());
+			String content_all = jacksonObjectMapper.writeValueAsString(content_map_all);
+			String comment_all = "合伙人位置分布,全国数据";
+			Integer count = datavizService.countDatavizByField(field, ":code", null, null, clients.getId());
+			if(count>0){
+				datavizService.updateDataviz(field, ":code", null, null,  content_all, clients.getId());
+			}else{
+				datavizService.saveDataviz(uniquid_all,field,filter_all,content_all,comment_all);
+			}
+		}
+		
+		//统计全省
+		//获取所有省级编码
+		ArrayList<String> provinceCodes = addressService.findProvinceCodeAll();
+		for (Iterator<String> iterator = provinceCodes.iterator(); iterator.hasNext();) {
+			String provinceCode = (String) iterator.next();
+			List<Clients> list_province = clientsService.clientsLocationDistribute(provinceCode,"province");
+			for (Iterator<Clients> iterator2 = list_province.iterator(); iterator2.hasNext();) {
+				Clients clients = (Clients) iterator2.next();
+				String uniquid_province = GetUniquid.build();
+				Map<String,Object> filter_map_province = new HashMap<String,Object>();
+				filter_map_province.put("area", provinceCode);
+				filter_map_province.put("id", clients.getId());
+				String filter_province = jacksonObjectMapper.writeValueAsString(filter_map_province);
+				Map<String,Object> content_map_province = new HashMap<String,Object>();
+				content_map_province.put("dotid", clients.getId());
+				content_map_province.put("lat", clients.getLat());
+				content_map_province.put("lng", clients.getLon());
+				content_map_province.put("value", 8);
+				content_map_province.put("info", "<a href='javascript:location.reload();'>"+clients.getName()+"</a>");
+				content_map_province.put("type", "ok");
+				content_map_province.put("name", clients.getName());
+				String content_province = jacksonObjectMapper.writeValueAsString(content_map_province);
+				Address address = addressService.findAddressByCode(provinceCode);
+				String comment_province = "合伙人位置分布,地区为"+address.getName()+"的数据";
+				Integer count_province = datavizService.countDatavizByField(field, provinceCode, null, null, clients.getId());
+				if(count_province>0){
+					datavizService.updateDataviz(field, provinceCode, null, null, content_province,  clients.getId());
+				}else{
+					datavizService.saveDataviz(uniquid_province,field,filter_province,content_province,comment_province);
+				}
+			}
+		}
+		
+		//统计全市
+		//获取所有市级编码
+		ArrayList<String> cityCodes = addressService.findCityCodeAll();
+		for (Iterator<String> iterator = cityCodes.iterator(); iterator.hasNext();) {
+			String cityCode = (String) iterator.next();
+			List<Clients> list_city = clientsService.clientsLocationDistribute(cityCode,"city");
+			for (Iterator<Clients> iterator2 = list_city.iterator(); iterator2.hasNext();) {
+				Clients clients = (Clients) iterator2.next();
+				String uniquid_city = GetUniquid.build();
+				Map<String,Object> filter_map_city = new HashMap<String,Object>();
+				filter_map_city.put("area", cityCode);
+				filter_map_city.put("id", clients.getId());
+				String filter_city = jacksonObjectMapper.writeValueAsString(filter_map_city);
+				Map<String,Object> content_map_city = new HashMap<String,Object>();
+				content_map_city.put("dotid", clients.getId());
+				content_map_city.put("lat", clients.getLat());
+				content_map_city.put("lng", clients.getLon());
+				content_map_city.put("value", 8);
+				content_map_city.put("info", "<a href='javascript:location.reload();'>"+clients.getName()+"</a>");
+				content_map_city.put("type", "ok");
+				content_map_city.put("name", clients.getName());
+				String content_city = jacksonObjectMapper.writeValueAsString(content_map_city);
+				Address address = addressService.findAddressByCode(cityCode);
+				String comment_city = "合伙人位置分布,地区为"+address.getName()+"的数据";
+				Integer count_city = datavizService.countDatavizByField(field, cityCode, null, null, clients.getId());
+				if(count_city>0){
+					datavizService.updateDataviz(field, cityCode, null, null, content_city, clients.getId());
+				}else{
+					datavizService.saveDataviz(uniquid_city,field,filter_city,content_city,comment_city);
+				}
+			}
+		}
+
+		//修改datavizField表中是的更新时间
+		String exeTime = sdf.format(new Date());
+		datavizFieldService.updateDatavizFieldExetime(field, false, null, sdf.parse(exeTime), "area");
+		
+		return null;
+	}
+	
+	//更新所属合伙人
+	@RequestMapping(value = "/update.json")
+	public Integer update(){
+		String[] partners = {};
+		String[] names = {};
+		for (int i = 0; i < partners.length; i++) {
+			String id = partnersService.findPartnersIdByName(partners[i]);
+			if(id == null){
+				System.out.println("所属合伙人:"+partners[i]);
+			}
+			clientsService.update(names[i], id);
+		}
+		return null;
+	}
+	
+}

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item value="false" key="isRegEx"/>
+		<item value="" key="selection"/>
+		<item value="false" key="casesensitive"/>
+		<item value="false" key="incremental"/>
+		<item value="true" key="wrap"/>
+		<item value="false" key="wholeword"/>
+		<list key="findhistory">
+			<item value="findTransportationDuration"/>
+			<item value="合伙人业务量及交易额"/>
+			<item value="months"/>
+			<item value="updateDataviz"/>
+			<item value="countDatavizByField"/>
+			<item value="com.dataviz.xusage.dao.DatavizDao"/>
+			<item value="累计订单"/>
+			<item value="findCallVehicle"/>
+			<item value="findTransportCapacityDispatchByMonth.json"/>
+			<item value="solution_detail"/>
+			<item value="dataz_gov.solution_detail"/>
+			<item value="transportCapacityDispatch"/>
+			<item value="区域运输"/>
+			<item value="区域"/>
+			<item value="合伙人推荐"/>
+		</list>
+		<list key="replacehistory">
+			<item value="com.dataviz.xusage.entity.Address"/>
+			<item value="dataz_gov."/>
+			<item value="hyll_wuliu.consignor"/>
+			<item value="hyll_wuliu.address"/>
+			<item value="hyll_wuliu.line_detail"/>
+			<item value="FROM hyll_wuliu.line_info "/>
+			<item value="hyll_wuliu.digital_config_history"/>
+			<item value="hyll_wuliu.digital_china_dict"/>
+			<item value="FROM dataz_gov.digital_china_dict"/>
+			<item value="FROM dataz_gov.dataviz"/>
+			<item value="from dataz_gov.dataviz"/>
+			<item value="from .dataviz"/>
+			<item value="from hyll_wuliu.dataviz"/>
+			<item value="from hyll_wuliu.vehicle"/>
+			<item value="hyll_wuliu."/>
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item value="475" key="DIALOG_WIDTH"/>
+		<item value="1|Microsoft YaHei UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Microsoft YaHei UI" key="DIALOG_FONT_NAME"/>
+		<item value="410" key="DIALOG_HEIGHT"/>
+		<item value="1196" key="DIALOG_X_ORIGIN"/>
+		<item value="209" key="DIALOG_Y_ORIGIN"/>
+	</section>
+</section>

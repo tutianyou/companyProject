@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.xusage.statics.dao.slaver.SelectSubjectCodeDao">
+
+
+
+	<!-- 查询宁德的科目代码 -->
+  	<select id="selectNingDeSubjectCode" resultType="String">
+	  	SELECT 
+	  		statics_settings.value as value
+		FROM
+			hyll_wuliu.statics_settings 
+		WHERE
+			statics_settings.code = 'ningde_fax_items'
+  	</select>
+  		
+  	<!-- 查询福清的科目代码 -->
+  	<select id="selectFuQingSubjectCode" resultType="String">
+	  	SELECT 
+	  		statics_settings.value as value
+		FROM
+			hyll_wuliu.statics_settings 
+		WHERE
+			statics_settings.code = 'fuqing_fax_items'
+  	</select>
+  
+  
+  	<!-- 查询福清的科目代码 -->
+  	<select id="selectFuZhouSubjectCode" resultType="String">
+	  	SELECT 
+	  		statics_settings.value as value
+		FROM
+			hyll_wuliu.statics_settings 
+		WHERE
+			statics_settings.code = 'fuzhou_fax_items'
+  	</select>
+  
+</mapper>

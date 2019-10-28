@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.GotoLineAction$GotoLineDialog_dialogBounds">
+		<item value="729" key="DIALOG_X_ORIGIN"/>
+		<item value="390" key="DIALOG_Y_ORIGIN"/>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item value="false" key="isRegEx"/>
+		<item value="运输" key="selection"/>
+		<item value="false" key="casesensitive"/>
+		<item value="false" key="incremental"/>
+		<item value="true" key="wrap"/>
+		<item value="false" key="wholeword"/>
+		<list key="findhistory">
+			<item value="运输"/>
+			<item value="赋能"/>
+			<item value="近十二月交易额"/>
+			<item value="油品"/>
+			<item value="运力增长"/>
+			<item value="top5"/>
+			<item value="top"/>
+			<item value="合伙人类型分布"/>
+			<item value="合伙人赋能"/>
+			<item value="回款金额"/>
+			<item value="id != &quot;&quot;"/>
+			<item value="SELECT t1.uniquid,t1.field,t1.filter,t1.content,t1.comment,t1.offset,t2.setting from dataviz t1 LEFT JOIN dataviz_field t2 on t1.field = t2.field WHERE 1=1 group by t1.filter LIMIT ?,? "/>
+			<item value="今日订单量"/>
+			<item value="findPartnersIdByName"/>
+			<item value="find"/>
+		</list>
+		<list key="replacehistory">
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item value="300" key="DIALOG_WIDTH"/>
+		<item value="1|Microsoft YaHei UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Microsoft YaHei UI" key="DIALOG_FONT_NAME"/>
+		<item value="410" key="DIALOG_HEIGHT"/>
+		<item value="1357" key="DIALOG_X_ORIGIN"/>
+		<item value="222" key="DIALOG_Y_ORIGIN"/>
+	</section>
+</section>

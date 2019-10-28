@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="xusage.xcommon.utility.StringUtils"/>
+<fullyQualifiedTypeName name="xusage.carrier.launch.catering.mission.SearchDriver"/>
+<fullyQualifiedTypeName name="java.awt.Font"/>
+<fullyQualifiedTypeName name="org.junit.Test"/>
+<fullyQualifiedTypeName name="xusage.mysql.mybatis.surface.Ticket"/>
+<fullyQualifiedTypeName name="xusage.carrier.launch.catering.surface.SearchTicket"/>
+<fullyQualifiedTypeName name="org.apache.http.impl.conn.SystemDefaultDnsResolver"/>
+<fullyQualifiedTypeName name="xusage.carrier.launch.catering.surface.SearchInvoiceContent.Result"/>
+<fullyQualifiedTypeName name="net.sf.json.JSONArray"/>
+<fullyQualifiedTypeName name="net.sf.json.JSONObject"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="xusage.carrier.launch.catering.mission.SearchInvoiceContentAndDetail"/>
+<fullyQualifiedTypeName name="xusage.carrier.launch.catering.surface.SearchInvoiceContentAndDetail.Result"/>
+<fullyQualifiedTypeName name="org.apache.commons.lang3.StringUtils"/>
+<fullyQualifiedTypeName name="xusage.carrier.launch.catering.util.CalculationUtil"/>
+<fullyQualifiedTypeName name="java.lang.Integer"/>
+<fullyQualifiedTypeName name="java.text.SimpleDateFormat"/>
+<fullyQualifiedTypeName name="xusage.carrier.launch.catering.surface.SearchInvoiceContent"/>
+<fullyQualifiedTypeName name="xusage.carrier.launch.catering.surface.SearchInvoiceContentDetail"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+</qualifiedTypeNameHistroy>

@@ -1,0 +1,11 @@
+{
+  "folders": [],
+  "settings": {
+    "javascript.referencesCodeLens.enabled": false,
+    "editor.suggest.filterGraceful": false,
+    "typescript.implementationsCodeLens.enabled": false,
+    "editor.quickSuggestionsDelay": 200,
+    "typescript.referencesCodeLens.enabled": false,
+    "editor.detectIndentation": false
+  }
+}

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xusage.statics.dao.master.FinancialFuQingStatementDao">
+
+	<!-- 福清 -->
+	<select id="searchFuQingProvinceFinanical" resultType="com.xusage.statics.pojo.CommentPojo">
+	SELECT 
+		cargo.cargo_no as cargoNo,
+		cargo.consignor_name as consignorName,
+		waybill.carrier_name as carrierName,
+		cargo.type as departMent,
+		cargo.provinces as province, 
+		LAST_DAY(waybill.order_time) as certificatDate,
+		sum(waybill.cash_pay_money) as entryTicketAmount,
+		sum(cargo.reference_freight) as invoiceAmount
+	FROM 
+		hyll_wuliu.cargo 
+	LEFT JOIN 
+		hyll_wuliu.waybill on waybill.cargo_id = cargo.id
+	WHERE
+		1=1
+	<if test="consignorName != null and consignorName != ''">
+	AND 
+		cargo.consignor_name LIKE CONCAT ('%',#{consignorName},'%' )
+	</if>
+	AND 
+		cargo.provinces LIKE CONCAT ('%','福清','%')
+	GROUP BY 
+		waybill.carrier_name,month(waybill.order_time),cargo.type
+	ORDER BY
+		waybill.order_time
+	<if test="length != null">
+									LIMIT 
+							<if test="offset != null">#{offset}, </if>
+											#{length}
+							</if>	
+	</select>
+	
+	
+	<select id="count" resultType="Integer">
+	 SELECT count(1) from  (
+		SELECT 
+			cargo.cargo_no as cargoNo,
+			cargo.consignor_name as consignorName,
+			waybill.carrier_name as carrierName,
+			cargo.type as departMent,
+			cargo.provinces as province, 
+			LAST_DAY(waybill.order_time) as certificatDate,
+			sum(waybill.cash_pay_money) as entryTicketAmount,
+			sum(cargo.reference_freight) as invoiceAmount
+		FROM 
+			hyll_wuliu.cargo 
+		LEFT JOIN 
+			hyll_wuliu.waybill on waybill.cargo_id = cargo.id
+		WHERE
+			1=1
+		<if test="consignorName != null and consignorName != ''">
+		AND 
+			cargo.consignor_name LIKE CONCAT ('%',#{consignorName},'%' )
+		</if>
+		AND 
+			cargo.provinces LIKE CONCAT ('%','福清','%')
+		GROUP BY 
+			waybill.carrier_name,month(waybill.order_time),cargo.type
+		ORDER BY
+			waybill.order_time
+ 		) t1
+	</select>
+	
+	
+
+</mapper>

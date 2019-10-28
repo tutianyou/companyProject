@@ -1,0 +1,99 @@
+package com.dataviz.xusage.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.dataviz.xusage.dao.TransportCapacityDao;
+import com.dataviz.xusage.entity.Common;
+import com.dataviz.xusage.entity.LineDistribute;
+
+@Service
+public class TransportCapacityService {
+
+	@Autowired
+	private TransportCapacityDao transportCapacityDao;
+	
+	//本月调用运力
+	public Integer thisMonthCallTransportCapacity(){
+		return transportCapacityDao.thisMonthCallTransportCapacity();
+	}
+	
+	//累计调用运力
+	public Integer accumulativeCallTransportCapacity(){
+		return transportCapacityDao.accumulativeCallTransportCapacity();
+	}
+	
+	//本月新增运力
+	public Integer thisMonthAddTransportCapacity(){
+		return transportCapacityDao.thisMonthAddTransportCapacity();
+	}
+	
+	//累计平台运力
+	public Integer accumulativeTransportCapacity(){
+		return transportCapacityDao.accumulativeTransportCapacity();
+	}
+	
+	//近12月运力增长
+	public Integer findTransportCapacityIncreaseByMonth(String month){
+		return transportCapacityDao.findTransportCapacityIncreaseByMonth(month);
+	}
+	
+	//近12月运力调用(调度车辆)
+	public Integer findTransportCapacityDispatchCarByMonth(String month) {
+		return transportCapacityDao.findTransportCapacityDispatchCarByMonth(month);
+	}
+	
+	//调用车辆
+	public List<Common> findCallVehicle(){
+		return transportCapacityDao.findCallVehicle();
+	}
+	
+	//运输车次
+	public List<Common> findTransportationNumber(){
+		return transportCapacityDao.findTransportationNumber();
+	}
+	
+	//运输时长
+	public List<Common> findTransportationDuration(){
+		return transportCapacityDao.findTransportationDuration();
+	}
+	
+	//车辆类型占比
+	public List<Common> vehicleTypeRatio(){
+		return transportCapacityDao.vehicleTypeRatio();
+	}
+	
+	//车长类型占比
+	public List<Common> vehicleLengthTypeRatio(){
+		return transportCapacityDao.vehicleLengthTypeRatio();
+	}
+	
+	//车辆区域热点分布
+	//查找车牌类型及对应的数量
+	public List<Common> findPlateAndCount(){
+		return transportCapacityDao.findPlateAndCount();
+	}
+	
+	//根据返回的车牌号前两位查询对应区域
+	public String findAreaCodeByPlate(String plate){
+		return transportCapacityDao.findAreaCodeByPlate(plate);
+	}
+	
+	//该省份车辆数
+	public Integer thisAreaVehicleNumber(String province_area, String city_area){
+		return transportCapacityDao.thisAreaVehicleNumber(province_area, city_area);
+	}
+	
+	//该省份的线路数量
+	public Integer thisProvinceLineNumber(String province_area, String city_area){
+		return transportCapacityDao.thisProvinceLineNumber(province_area, city_area);
+	}
+	
+	//线路分布
+		//获取起始地和卸货地的code 
+	public List<LineDistribute> getStratAndEndArea(String province_area,String city_area){
+		return transportCapacityDao.getStratAndEndArea(province_area, city_area);
+	}
+}

@@ -1,0 +1,33 @@
+package xusage.carrier.launch.catering.mission;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import xusage.xmission.surface.ProcunitException;
+
+public class SearchVehicle implements xusage.carrier.launch.catering.surface.SearchVehicle {
+	private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(SearchVehicle.class);
+
+	@Override
+	public List<Result> execute(Parameter parameter) throws ProcunitException {
+		// TODO Auto-generated method stub
+		LOGGER.debug("parameter:" + parameter.toString());
+
+		List<Result> result = new ArrayList<SearchVehicle.Result>();
+		Integer total = vehicle.count(parameter);
+		for(Result i : vehicle.searchVehicle(parameter)) {
+			i.setTotal(total);
+			//System.err.println(i.getDriver_name());
+			result.add(i);
+		}
+		return result;
+	}
+	private xusage.mysql.mybatis.surface.Vehicle vehicle;
+
+	public xusage.mysql.mybatis.surface.Vehicle getVehicle() {
+		return vehicle;
+	}
+	public void setVehicle(xusage.mysql.mybatis.surface.Vehicle vehicle) {
+		this.vehicle = vehicle;
+	}
+}

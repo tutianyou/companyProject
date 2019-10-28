@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dataviz.xusage.dao.TransportCapacityDao">
+
+	<!-- 本月调用运力 -->
+	<select id="thisMonthCallTransportCapacity" resultType="Integer">
+		SELECT
+			count(DISTINCT(sd.plate_no))
+		FROM
+			hyll_wuliu.waybill w
+		LEFT JOIN hyll_wuliu.solution_detail sd ON w.id = sd.waybill_id
+		WHERE
+			1 = 1
+		AND DATE_FORMAT(sd.loading_time, '%Y%m') = DATE_FORMAT(CURDATE(), '%Y%m');
+			</select>
+
+	<!-- 累计调用运力 -->
+	<select id="accumulativeCallTransportCapacity" resultType="Integer">
+		SELECT
+			count(DISTINCT(sd.plate_no))
+		FROM
+			hyll_wuliu.waybill w
+		LEFT JOIN hyll_wuliu.solution_detail sd ON w.id = sd.waybill_id
+		WHERE 1 = 1
+	</select>
+	
+	<!-- 本月新增运力 -->
+	<select id="thisMonthAddTransportCapacity" resultType="Integer">
+		SELECT COUNT(*)
+		FROM hyll_wuliu.vehicle
+		WHERE 1=1
+		AND auth_status = 3
+		AND DATE_FORMAT( auth_time, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+	</select>
+
+	<!-- 累计平台运力 -->
+	<select id="accumulativeTransportCapacity" resultType="Integer">
+		SELECT COUNT(*)
+		FROM hyll_wuliu.vehicle
+		WHERE 1=1
+		AND auth_status = 3
+	</select>
+	
+	<!-- 近12月运力增长 -->
+	<select id="findTransportCapacityIncreaseByMonth" resultType="Integer">
+		SELECT
+			<!-- LEFT(submit_time,7) AS month, -->
+			count(*) AS count
+		FROM
+			hyll_wuliu.vehicle
+		WHERE 1=1
+			AND auth_status = 3
+			AND LEFT(submit_time,7) = ${month}
+			<!-- AND submit_time BETWEEN date_sub(now(), INTERVAL 11 MONTH) AND now()
+		GROUP BY LEFT(submit_time,7) -->
+	</select>
+	
+	<!-- 近12月运力调用 -->
+	<!-- 调用车辆 -->
+	<select id="findTransportCapacityDispatchCarByMonth" resultType="Integer">
+		SELECT
+			count(
+					DISTINCT (solution_detail.plate_no)
+				) AS count
+		FROM
+			hyll_wuliu.waybill
+		LEFT JOIN hyll_wuliu.solution_detail ON waybill.id = hyll_wuliu.solution_detail.waybill_id
+		WHERE
+			1 = 1
+		AND solution_detail.id IS NOT NULL
+		AND solution_detail.loading_time BETWEEN date_sub(now(), INTERVAL 11 MONTH) AND now()
+		and LEFT(solution_detail.loading_time,7) = #{month}
+	</select>
+	
+	<!-- <select id="findCallVehicle" resultType="com.dataviz.xusage.entity.Common">
+		SELECT
+			LEFT(solution_detail.loading_time,7) AS month,
+			count(
+					DISTINCT (solution_detail.plate_no)
+				) AS count
+		FROM
+			hyll_wuliu.waybill
+		LEFT JOIN hyll_wuliu.solution_detail ON waybill.id = hyll_wuliu.solution_detail.waybill_id
+		WHERE
+			1 = 1
+		AND solution_detail.id IS NOT NULL
+		AND solution_detail.loading_time BETWEEN date_sub(now(), INTERVAL 11 MONTH) AND now()
+		GROUP BY LEFT(solution_detail.loading_time,7)
+	</select> -->
+	
+	<!-- 运输车次 -->
+	<select id="findTransportCapacityDispatchCarsNumByMonth" resultType="Integer">			
+		SELECT
+			count(*) AS count
+		FROM
+			hyll_wuliu.waybill
+		LEFT JOIN hyll_wuliu.solution_detail ON waybill.id = solution_detail.waybill_id
+		WHERE
+			1 = 1
+		AND solution_detail.id IS NOT NULL
+		AND solution_detail.loading_time BETWEEN date_sub(now(), INTERVAL 11 MONTH) AND now()
+		and LEFT(solution_detail.loading_time,7) = #{month}
+	</select>
+	
+	
+<!-- 	<select id="findTransportationNumber" resultType="com.dataviz.xusage.entity.Common">
+		SELECT
+			LEFT(solution_detail.loading_time,7) AS month,	
+			count(*) AS count
+		FROM
+			hyll_wuliu.waybill
+		LEFT JOIN hyll_wuliu.solution_detail ON waybill.id = solution_detail.waybill_id
+		WHERE
+			1 = 1
+		AND solution_detail.id IS NOT NULL
+		AND solution_detail.loading_time BETWEEN date_sub(now(), INTERVAL 11 MONTH) AND now()
+		GROUP BY LEFT(solution_detail.loading_time,7)
+	</select> -->
+	
+	
+	
+	<!-- 运输时长 -->
+	<select id="findTransportCapacityDispatchCarsTimerByMonth" resultType="Integer">			
+		SELECT
+			count(*) AS count
+		FROM
+			hyll_wuliu.waybill
+		LEFT JOIN hyll_wuliu.solution_detail ON waybill.id = solution_detail.waybill_id
+		WHERE
+			1 = 1
+		AND solution_detail.id IS NOT NULL
+		AND solution_detail.loading_time BETWEEN date_sub(now(), INTERVAL 11 MONTH) AND now()
+		and LEFT(solution_detail.loading_time,7) = #{month}
+	</select>
+	
+	<!-- 运输时长 -->
+	<select id="findTransportationDuration"  resultType="com.dataviz.xusage.entity.Common">
+		SELECT
+			SUM( TIMESTAMPDIFF( MINUTE, loading_time, unloading_time ) ) AS count
+		FROM
+			hyll_wuliu.waybill
+		LEFT JOIN hyll_wuliu.solution_detail ON waybill.id = solution_detail.waybill_id
+		WHERE
+			1 = 1
+		AND solution_detail.id IS NOT NULL
+		AND solution_detail.loading_time BETWEEN date_sub(now(), INTERVAL 11 MONTH)
+		AND now()
+		and  LEFT ( solution_detail.loading_time, 7 ) = #{month}
+	</select>
+	
+	<!-- 车辆类型占比 -->
+	<select id="vehicleTypeRatio" resultType="com.dataviz.xusage.entity.Common">
+		SELECT user_def_dic.name AS type,COUNT(*) AS count
+		FROM hyll_wuliu.vehicle
+		LEFT JOIN hyll_wuliu.user_def_dic
+		ON vehicle.vehicle_type = user_def_dic.code
+		WHERE 1=1
+		AND vehicle_type IS NOT NULL
+		AND  user_def_dic.name IS NOT NULL
+		GROUP BY user_def_dic.name
+	</select>
+	
+	<!-- 车长类型占比 -->
+	<select id="vehicleLengthTypeRatio" resultType="com.dataviz.xusage.entity.Common">
+		SELECT user_def_dic.name AS type,COUNT(*) AS count
+		FROM hyll_wuliu.vehicle
+		LEFT JOIN hyll_wuliu.user_def_dic
+		ON vehicle.vehicle_length = user_def_dic.code
+		WHERE 1=1
+		AND vehicle_length IS NOT NULL
+		AND user_def_dic.name IS NOT NULL
+		GROUP BY user_def_dic.name
+	</select>
+	
+	<!-- 车辆区域热点分布 -->
+	<!-- 查找车牌类型及对应的数量 -->
+	<select id="findPlateAndCount" resultType="com.dataviz.xusage.entity.Common">
+		SELECT LEFT(vehicle.plate_no,1) AS type,COUNT(*) AS count
+		FROM hyll_wuliu.vehicle
+		GROUP BY LEFT(vehicle.plate_no,1)
+	</select>
+	<!-- 根据返回的车牌号前两位查询对应区域 -->
+	<select id="findAreaCodeByPlate" resultType="String">
+		SELECT province_code
+		FROM hyll_wuliu.palte_attribution
+		WHERE plate LIKE CONCAT('%', #{plate}, '%')
+	</select>
+	
+	<!-- 该省份车辆数 -->
+	<select id="thisAreaVehicleNumber" resultType="Integer">
+		SELECT COUNT(*)
+		FROM hyll_wuliu.vehicle
+		<if test="province_area!=null and province_area!=''">
+		LEFT JOIN hyll_wuliu.palte_attribution ON palte_attribution.province_code = #{province_area}
+		</if>
+		WHERE 1=1
+		AND palte_attribution.plate LIKE CONCAT('%', LEFT(vehicle.plate_no,2), '%')
+	</select>
+	
+	<!-- 该省份线路数量 -->
+	<select id="thisProvinceLineNumber" resultType="Integer">
+		SELECT COUNT(distinct start,end)
+		FROM hyll_wuliu.tranist_price 
+		WHERE 1=1 
+		<if test="province_area != null and province_area != ''">
+		AND CONCAT(LEFT(start,3),'000') = #{province_area}
+		</if>
+	</select>
+	
+	<!-- 线路分布 -->
+	<!-- 获取起始地和卸货地的code -->
+	<select id="getStratAndEndArea" resultType="com.dataviz.xusage.entity.LineDistribute">
+		SELECT 
+			uniquid AS id
+		<if test="province_area != null and province_area != ''">
+			,start AS start,end AS end
+		</if>
+		FROM hyll_wuliu.tranist_price
+		WHERE 1=1
+		<if test="province_area != null and province_area != ''">
+		AND CONCAT(LEFT(start,3),'000') = #{province_area}
+		</if>
+		GROUP BY start,end
+	</select>
+</mapper>
